@@ -1,0 +1,50 @@
+[tool.poetry]
+name = "commonroad-raceline-planner"
+version = "0.1.1"
+description = "CommonRoad Velocity Planner Toolbox"
+authors = ["Tobias Mascetta <tobias.mascetta@tum.de>", "Mohammed Aziz Bouziri <aziz.bouziri1@gmail.com>", "Johannes Betz <betz@tum.de>"]
+license = "BSD"
+readme = "README.md"
+keywords= ["autonomous", "automated", "vehicles", "driving", "motion", "planning", "racing"]
+classifiers = [
+    "Programming Language :: Python :: 3.9",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: POSIX :: Linux",
+]
+
+packages = [{include = "commonroad_raceline_planner"}]
+
+
+# Dependencies
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+commonroad-io = ">=2022.2"
+numpy = ">=1.17.4,<2.0"
+cvxpy = "^1.4"
+matplotlib = "<3.9"
+
+
+
+# test
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.test.dependencies]
+coverage = "^6.5.0"
+commonroad-reactive-planner = "^2024.1"
+
+# docs
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocstrings-python = "^1.8.0"
+mkdocs-material = "^9.5.10"
+
+
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

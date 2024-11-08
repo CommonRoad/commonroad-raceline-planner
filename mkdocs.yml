@@ -1,0 +1,38 @@
+site_name: CommonRoad Velocity Planner
+
+theme:
+  name: material
+  logo: assets/commonroad_white150.png
+
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: sphinx
+            show_root_heading: false
+            heading_level: 3
+            show_module_names: False
+  - search
+
+nav:
+  - Introduction:
+    - "Introduction": index.md
+
+  - Example Usage:
+      - "Fast API": fast_api.md
+      - "Minimal Example": minimal_example.md
+      - "Long Example": long_example.md
+      - "Different Planners": planner_switch_example.md
+      - "Configurations": config_example.md
+      - "Reactive Planner Integration": reactive_planner_integration.md
+
+  - Core API:
+      - "Velocity Planner Interface": vpi.md
+      - "Velocity Planning Problem": vpp.md
+      - "Global Trajectory": global_trajectory.md
+      - "Configuration": config.md
+      - "Visualization": visualization.md
+      - "Spline Profile": spline_profile.md
+
+
