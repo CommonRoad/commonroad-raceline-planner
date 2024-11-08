@@ -34,7 +34,7 @@ lap_time_mat_opts:
   file: "lap_time_matrix.csv"
 
 file_paths:
-  veh_params_file: "racecar.ini"
+  veh_params_file: "inputs/params/racecar.ini"
 #  track_name: "handling_track"
 #  track_file: "inputs/tracks/handling_track.csv"
   track_name: "lanelet_data.csv"

@@ -8,6 +8,7 @@ from pathlib import Path
 
 import numpy as np
 from matplotlib import pyplot as plt
+from pathlib import Path
 
 # own package
 import commonroad_raceline_planner.util.trajectory_planning_helpers as tph
@@ -15,10 +16,14 @@ import commonroad_raceline_planner.util.helper_funcs_glob as helper_funcs_glob
 import commonroad_raceline_planner.global_trajectory_optimization.opt_mintime_traj as opt_mintime_traj
 from commonroad_raceline_planner.util.aziz_helpers.helper_functions import add_to_dict
 from commonroad_raceline_planner.util.aziz_utility.race_line_config import RaceLinePlannerConfiguration
+from commonroad_raceline_planner.util.helper_funcs_glob.import_track import import_track as helper_import_track
 
 
 class RaceLinePlanner:
-    def __init__(self, config: RaceLinePlannerConfiguration):
+    def __init__(
+            self,
+            config: RaceLinePlannerConfiguration
+    ):
         """
         Initialize the RaceLinePlanner with a given configuration.
 
@@ -29,6 +34,7 @@ class RaceLinePlanner:
         self.file_paths = config.file_paths
         # Add module path to file_paths
         self.file_paths["module"] = os.path.dirname(os.path.abspath(__file__))
+        print(os.path.dirname(os.path.abspath(__file__)))
 
         # Ensure paths exist
         os.makedirs(os.path.join(self.file_paths["module"], "outputs"), exist_ok=True)
@@ -40,8 +46,9 @@ class RaceLinePlanner:
         parser = configparser.ConfigParser()
         pars = {}
 
-        if not parser.read(os.path.join(self.file_paths["module"], "params", self.file_paths["veh_params_file"])):
-            raise ValueError('Specified config file does not exist or is empty!')
+        parser.read(os.path.join(self.file_paths["module"], self.file_paths["veh_params_file"]))
+        print(os.path.join(self.file_paths["module"], self.file_paths["veh_params_file"]))
+
 
         # Add attributes to dict
         add_to_dict(pars, "ggv_file", json.loads(parser.get('GENERAL_OPTIONS', 'ggv_file')))
@@ -85,7 +92,7 @@ class RaceLinePlanner:
         self.t_start = time.perf_counter()
 
         # import track
-        self.reftrack_imp = helper_funcs_glob.src.import_track.import_track(
+        self.reftrack_imp = helper_import_track(
             imp_opts=self.config.import_opts,
             file_path=self.file_paths["track_file"],
             width_veh=self.pars["veh_params"]["width"]
