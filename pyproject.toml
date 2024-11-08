@@ -22,6 +22,7 @@ commonroad-io = ">=2022.2"
 numpy = ">=1.17.4,<2.0"
 cvxpy = "^1.4"
 matplotlib = "<3.9"
+quadrog="<=1.0"
 
 
 

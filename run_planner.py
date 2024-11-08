@@ -17,6 +17,9 @@ import commonroad_raceline_planner.global_trajectory_optimization.opt_mintime_tr
 from commonroad_raceline_planner.util.aziz_helpers.helper_functions import add_to_dict
 from commonroad_raceline_planner.util.aziz_utility.race_line_config import RaceLinePlannerConfiguration
 from commonroad_raceline_planner.util.helper_funcs_glob.import_track import import_track as helper_import_track
+from commonroad_raceline_planner.util.helper_funcs_glob.prep_track import prep_track as helper_prep_track
+from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_veh_dyn_info
+from commonroad_raceline_planner.util.trajectory_planning_helpers.opt_min_curv import opt_min_curv
 
 
 class RaceLinePlanner:
@@ -104,7 +107,7 @@ class RaceLinePlanner:
         """
         # import ggv and ax_max_machines (if required)
         if not (self.config.opt_type == 'mintime' and not self.config.mintime_opts['recalc_vel_profile_by_tph']):
-            self.ggv, self.ax_max_machines = tph.import_veh_dyn_info.import_veh_dyn_info(
+            self.ggv, self.ax_max_machines = import_veh_dyn_info(
                 ggv_import_path=self.file_paths["ggv_file"],
                 ax_max_machines_import_path=self.file_paths["ax_max_machines_file"]
             )
@@ -117,7 +120,7 @@ class RaceLinePlanner:
         Prepare the reference track by interpolating and normalizing the imported track data.
         """
         self.reftrack_interp, self.normvec_normalized_interp, self.a_interp, self.coeffs_x_interp, self.coeffs_y_interp = \
-            helper_funcs_glob.src.prep_track.prep_track(
+            helper_prep_track(
                 reftrack_imp=self.reftrack_imp,
                 reg_smooth_opts=self.pars["reg_smooth_opts"],
                 stepsize_opts=self.pars["stepsize_opts"],
@@ -149,7 +152,7 @@ class RaceLinePlanner:
                 print_debug=self.config.debug['debug']
             )
         elif self.config.opt_type == 'mincurv':
-            self.alpha_opt = tph.opt_min_curv.opt_min_curv(
+            self.alpha_opt = opt_min_curv(
                 reftrack=self.reftrack_interp,
                 normvectors=self.normvec_normalized_interp,
                 A=self.a_interp,

@@ -1,7 +1,11 @@
 import numpy as np
-import trajectory_planning_helpers as tph
+import commonroad_raceline_planner.util.trajectory_planning_helpers as tph
 import sys
 import matplotlib.pyplot as plt
+
+from commonroad_raceline_planner.util.trajectory_planning_helpers.spline_approximation import spline_approximation
+from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
+from commonroad_raceline_planner.util.trajectory_planning_helpers.check_normals_crossing import check_normals_crossing
 
 
 def prep_track(reftrack_imp: np.ndarray,
@@ -36,8 +40,7 @@ def prep_track(reftrack_imp: np.ndarray,
     # ------------------------------------------------------------------------------------------------------------------
 
     # smoothing and interpolating reference track
-    reftrack_interp = tph.spline_approximation. \
-        spline_approximation(track=reftrack_imp,
+    reftrack_interp = spline_approximation(track=reftrack_imp,
                              k_reg=reg_smooth_opts["k_reg"],
                              s_reg=reg_smooth_opts["s_reg"],
                              stepsize_prep=stepsize_opts["stepsize_prep"],
@@ -47,16 +50,15 @@ def prep_track(reftrack_imp: np.ndarray,
     # calculate splines
     refpath_interp_cl = np.vstack((reftrack_interp[:, :2], reftrack_interp[0, :2]))
 
-    coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp = tph.calc_splines.\
-        calc_splines(path=refpath_interp_cl)
+    coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp = calc_splines(path=refpath_interp_cl)
 
     # ------------------------------------------------------------------------------------------------------------------
     # CHECK SPLINE NORMALS FOR CROSSING POINTS -------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
-    normals_crossing = tph.check_normals_crossing.check_normals_crossing(track=reftrack_interp,
-                                                                         normvec_normalized=normvec_normalized_interp,
-                                                                         horizon=10)
+    normals_crossing = check_normals_crossing(track=reftrack_interp,
+                                                        normvec_normalized=normvec_normalized_interp,
+                                                         horizon=10)
 
     if normals_crossing:
         bound_1_tmp = reftrack_interp[:, :2] + normvec_normalized_interp * np.expand_dims(reftrack_interp[:, 2], axis=1)
