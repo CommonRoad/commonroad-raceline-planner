@@ -1,5 +1,10 @@
 import numpy as np
 
+
+# commonroad
+from commonroad.common.file_reader import CommonRoadFileReader
+from commonroad.visualization.mp_renderer import MPRenderer
+
 from commonroad_raceline_planner.ractetrack import RaceTrack
 
 
@@ -80,11 +85,92 @@ class RaceTrackFactory:
 
     def generate_racetrack_from_cr_scenario(
             self,
-    ) -> RaceTrack:
-        pass
+            file_path: str,
+            imp_opts: dict,
+            width_veh: float
+    ):
+
+        """
+            This function converts a CommonRoad XML file to a CSV file.
+
+            The CSV file contains the x and y coordinates of each point in the centerline of each lanelet in the lanelet network,
+            as well as the distances from each center point to the nearest point in the left and right lines of the lanelet.
+            (width_track_left and width_track_right)
+            """
+        # Open the XML file and read the scenario
+        scenario, _ = CommonRoadFileReader(file_path).open()
+        lanelet_network = scenario.lanelet_network
+
+        points = []
+        lanelets = RaceTrackFactory.sort_lanelets_by_id(lanelet_network)
+
+        for lanelet in lanelets:
+            if lanelet.predecessor and lanelet.successor:
+                lanelet_id_str = str(lanelet.lanelet_id)
+                print("lanelet" + lanelet_id_str + "has pred and suc")
+
+            for center_point in lanelet.center_vertices:
+                left_distances = [np.linalg.norm(center_point - left_point) for left_point in lanelet.left_vertices]
+                min_left_distance = min(left_distances)
+
+                right_distances = [np.linalg.norm(center_point - right_point) for right_point in lanelet.right_vertices]
+                min_right_distance = min(right_distances)
+                points.append({
+                    'x_m': center_point[0],
+                    'y_m': center_point[1],
+                    'w_tr_right_m': min_right_distance,
+                    'w_tr_left_m': min_left_distance
+                })
+
+        # Remove colliding points
+        threshold_distance = 0.5  # Increased threshold for colliding points
+        filtered_points = []
+        last_point = points[0]
+        filtered_points.append(last_point)
+        deleted_points = []
+
+        for i, point in enumerate(points[1:], start=1):
+            distance = np.linalg.norm(
+                np.array([point['x_m'], point['y_m']]) - np.array([last_point['x_m'], last_point['y_m']]))
+            if distance > threshold_distance:
+                filtered_points.append(point)
+                last_point = point
+            else:
+                # # Average the colliding points
+                # averaged_point = {
+                #     'x_m': (point['x_m'] + last_point['x_m']) / 2,
+                #     'y_m': (point['y_m'] + last_point['y_m']) / 2,
+                #     'w_tr_right_m': (point['w_tr_right_m'] + last_point['w_tr_right_m']) / 2,
+                #     'w_tr_left_m': (point['w_tr_left_m'] + last_point['w_tr_left_m']) / 2
+                # }
+                # filtered_points[-1] = averaged_point
+                # last_point = averaged_point
+                deleted_points.append((i, point))
+
+        # Check if the filtered points form a closed map
+        if np.linalg.norm(np.array([filtered_points[0]['x_m'], filtered_points[0]['y_m']]) - np.array(
+                [filtered_points[-1]['x_m'], filtered_points[-1]['y_m']])) > threshold_distance:
+            print("The map is not closed.")
+        else:
+            print("The map is closed.")
+
+        # Print deleted points
+        if deleted_points:
+            print("The following points were deleted because they were too close to the previous point:")
+            for index, point in deleted_points:
+                print(f"Index: {index}, Point: {point}")
+        else:
+            print("No points were deleted.")
+
+            return np.asarray(points)
 
 
 
+    @staticmethod
+    def sort_lanelets_by_id(lanelet_network):
+        lanelets = lanelet_network.lanelets
+        lanelets.sort(key=lambda l: int(l.lanelet_id))
+        return lanelets
 
 
 

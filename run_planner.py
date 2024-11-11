@@ -1,4 +1,3 @@
-import configparser
 import copy
 import json
 import os
@@ -12,8 +11,6 @@ from pathlib import Path
 # own package
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
 from commonroad_raceline_planner.ractetrack import RaceTrack
-#from commonroad_raceline_planner.optimization.opt_mintime import opt_mintime
-from commonroad_raceline_planner.util.aziz_helpers.helper_functions import add_to_dict
 from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_veh_dyn_info
 from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
 from commonroad_raceline_planner.optimization.opt_shortest_path import opt_shortest_path
@@ -63,7 +60,6 @@ class RaceLinePlanner:
         """
         Set up the vehicle parameters by reading from the configuration file.
         """
-
         self.pars = setup_vehicle_parameters(
             config=self.config
         )
