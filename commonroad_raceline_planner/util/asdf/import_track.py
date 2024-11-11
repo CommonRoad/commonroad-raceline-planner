@@ -19,7 +19,7 @@ def import_track(file_path: str,
     width_veh:      vehicle width required to check against track width
 
     Outputs:
-    reftrack_imp:   imported track [x_m, y_m, w_tr_right_m, w_tr_left_m]
+    race_track:   imported track [x_m, y_m, w_tr_right_m, w_tr_left_m]
     """
 
     # load data from csv file

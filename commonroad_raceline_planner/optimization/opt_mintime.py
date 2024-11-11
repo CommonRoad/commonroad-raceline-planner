@@ -3,7 +3,7 @@ import sys
 import time
 import numpy as np
 import casadi as ca
-import opt_mintime_traj
+import commonroad_raceline_planner.friction_optimization.opt_mintime_traj as opt_mintime_traj
 import trajectory_planning_helpers as tph
 
 

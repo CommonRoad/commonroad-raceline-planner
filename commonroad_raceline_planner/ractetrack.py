@@ -2,10 +2,7 @@ import numpy as np
 
 from dataclasses import dataclass
 
-
-from typing import List
-
-@dataclass(frozen=True)
+@dataclass
 class RaceTrack:
     x_m: np.ndarray
     y_m: np.ndarray

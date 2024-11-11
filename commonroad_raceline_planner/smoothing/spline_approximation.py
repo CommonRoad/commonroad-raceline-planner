@@ -4,11 +4,12 @@ from scipy import spatial
 import numpy as np
 import math
 import commonroad_raceline_planner.util.trajectory_planning_helpers as tph
+from commonroad_raceline_planner.ractetrack import RaceTrack
 from commonroad_raceline_planner.util.trajectory_planning_helpers.interp_track import interp_track
 from commonroad_raceline_planner.util.trajectory_planning_helpers.side_of_line import side_of_line
 
 
-def spline_approximation(track: np.ndarray,
+def spline_approximation(track: RaceTrack,
                          k_reg: int = 3,
                          s_reg: int = 10,
                          stepsize_prep: float = 1.0,

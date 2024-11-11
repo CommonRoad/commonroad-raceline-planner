@@ -10,13 +10,15 @@ from matplotlib import pyplot as plt
 from pathlib import Path
 
 # own package
-import commonroad_raceline_planner.optimization.opt_mintime_traj as opt_mintime_traj
+from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
+from commonroad_raceline_planner.ractetrack import RaceTrack
+#from commonroad_raceline_planner.optimization.opt_mintime import opt_mintime
 from commonroad_raceline_planner.util.aziz_helpers.helper_functions import add_to_dict
 from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_veh_dyn_info
 from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
 from commonroad_raceline_planner.optimization.opt_shortest_path import opt_shortest_path
 from commonroad_raceline_planner.util.trajectory_planning_helpers.create_raceline import create_raceline
-from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_vel_profile import calc_vel_profile
+from commonroad_raceline_planner.velocity_profile.calc_vel_profile import calc_vel_profile
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_t_profile import calc_t_profile
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_head_curv_an import calc_head_curv_an
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_ax_profile import calc_ax_profile
@@ -27,12 +29,11 @@ from commonroad_raceline_planner.util.validation import check_traj
 from commonroad_raceline_planner.configuration.race_line_config import RaceLinePlannerConfiguration
 
 from commonroad_raceline_planner.util.io import (
-    import_track,
     export_traj_ltpl,
     export_traj_race
 )
 
-from commonroad_raceline_planner.util.track_processing import prep_track
+from commonroad_raceline_planner.util.track_processing import preprocess_track
 
 
 
@@ -105,15 +106,17 @@ class RaceLinePlanner:
         Import the track data from the specified file in the configuration.
         """
 
-        # save start time
-        self.t_start = time.perf_counter()
-
-        # import track
-        self.reftrack_imp = import_track(
+        race_track_ractory = RaceTrackFactory()
+        self.race_track: RaceTrack = race_track_ractory.generate_racetrack_from_csv(
             imp_opts=self.config.import_opts,
             file_path=self.file_paths["track_file"],
             width_veh=self.pars["veh_params"]["width"]
         )
+
+        # save start time
+        self.t_start = time.perf_counter()
+
+
 
     def import_vehicle_dynamics(self):
         """
@@ -134,8 +137,8 @@ class RaceLinePlanner:
         Prepare the reference track by interpolating and normalizing the imported track data.
         """
         self.reftrack_interp, self.normvec_normalized_interp, self.a_interp, self.coeffs_x_interp, self.coeffs_y_interp = \
-            prep_track(
-                reftrack_imp=self.reftrack_imp,
+            preprocess_track(
+                race_track=self.race_track,
                 reg_smooth_opts=self.pars["reg_smooth_opts"],
                 stepsize_opts=self.pars["stepsize_opts"],
                 debug=self.config.debug['debug'],
@@ -178,8 +181,7 @@ class RaceLinePlanner:
         elif self.config.opt_type == 'mintime':
             # reftrack_interp, a_interp and normvec_normalized_interp are returned for the case that non-regular sampling was
             # applied
-            self.alpha_opt, self.v_opt, self.reftrack_interp, self.a_interp_tmp, self.normvec_normalized_interp = opt_mintime_traj.src.opt_mintime. \
-                opt_mintime(reftrack=self.reftrack_interp,
+            self.alpha_opt, self.v_opt, self.reftrack_interp, self.a_interp_tmp, self.normvec_normalized_interp = opt_mintime(reftrack=self.reftrack_interp,
                             coeffs_x=self.coeffs_x_interp,
                             coeffs_y=self.coeffs_y_interp,
                             normvectors=self.normvec_normalized_interp,
@@ -211,11 +213,11 @@ class RaceLinePlanner:
 
             # use spline approximation a second time
             self.reftrack_interp, self.normvec_normalized_interp, self.a_interp = \
-                prep_track(reftrack_imp=self.racetrack_mintime,
-                                                            reg_smooth_opts=self.pars["reg_smooth_opts"],
-                                                            stepsize_opts=self.pars["stepsize_opts"],
-                                                            debug=False,
-                                                            min_width=self.config.import_opts["min_track_width"])[:3]
+                preprocess_track(race_track=self.racetrack_mintime,
+                                 reg_smooth_opts=self.pars["reg_smooth_opts"],
+                                 stepsize_opts=self.pars["stepsize_opts"],
+                                 debug=False,
+                                 min_width=self.config.import_opts["min_track_width"])[:3]
 
             # set artificial track widths for reoptimization
             self.w_tr_tmp = 0.5 * self.pars["optim_opts"]["w_tr_reopt"] * np.ones(self.reftrack_interp.shape[0])
@@ -460,15 +462,15 @@ class RaceLinePlanner:
 
         if self.config.debug['plot_opts']["imported_bounds"]:
             # try to extract four times as many points as in the interpolated version (in order to hold more details)
-            n_skip = max(int(self.reftrack_imp.shape[0] / (self.bound1.shape[0] * 4)), 1)
+            n_skip = max(int(self.race_track.shape[0] / (self.bound1.shape[0] * 4)), 1)
 
-            _, _, _, normvec_imp = calc_splines(path=np.vstack((self.reftrack_imp[::n_skip, 0:2],
-                                                                                 self.reftrack_imp[0, 0:2])))
+            _, _, _, normvec_imp = calc_splines(path=np.vstack((self.race_track[::n_skip, 0:2],
+                                                                self.race_track[0, 0:2])))
 
-            bound1_imp = self.reftrack_imp[::n_skip, :2] + normvec_imp * np.expand_dims(self.reftrack_imp[::n_skip, 2],
-                                                                                        1)
-            bound2_imp = self.reftrack_imp[::n_skip, :2] - normvec_imp * np.expand_dims(self.reftrack_imp[::n_skip, 3],
-                                                                                        1)
+            bound1_imp = self.race_track[::n_skip, :2] + normvec_imp * np.expand_dims(self.race_track[::n_skip, 2],
+                                                                                      1)
+            bound2_imp = self.race_track[::n_skip, :2] - normvec_imp * np.expand_dims(self.race_track[::n_skip, 3],
+                                                                                      1)
 
         # plot results
         result_plots(plot_opts=self.config.debug['plot_opts'],

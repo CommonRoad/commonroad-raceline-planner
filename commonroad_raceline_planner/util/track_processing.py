@@ -3,16 +3,18 @@ import sys
 import matplotlib.pyplot as plt
 import math
 
-from commonroad_raceline_planner.util.trajectory_planning_helpers.spline_approximation import spline_approximation
+# CommonRoad
+from commonroad_raceline_planner.ractetrack import RaceTrack
+from commonroad_raceline_planner.smoothing.spline_approximation import spline_approximation
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
 from commonroad_raceline_planner.util.trajectory_planning_helpers.check_normals_crossing import check_normals_crossing
 
 
-def prep_track(reftrack_imp: np.ndarray,
-               reg_smooth_opts: dict,
-               stepsize_opts: dict,
-               debug: bool = True,
-               min_width: float = None) -> tuple:
+def preprocess_track(race_track: RaceTrack,
+                     reg_smooth_opts: dict,
+                     stepsize_opts: dict,
+                     debug: bool = True,
+                     min_width: float = None) -> tuple:
     """
     Created by:
     Alexander Heilmeier
@@ -21,7 +23,7 @@ def prep_track(reftrack_imp: np.ndarray,
     This function prepares the inserted reference track for optimization.
 
     Inputs:
-    reftrack_imp:               imported track [x_m, y_m, w_tr_right_m, w_tr_left_m]
+    race_track:               imported track [x_m, y_m, w_tr_right_m, w_tr_left_m]
     reg_smooth_opts:            parameters for the spline approximation
     stepsize_opts:              dict containing the stepsizes before spline approximation and after spline interpolation
     debug:                      boolean showing if debug messages should be printed
@@ -40,12 +42,12 @@ def prep_track(reftrack_imp: np.ndarray,
     # ------------------------------------------------------------------------------------------------------------------
 
     # smoothing and interpolating reference track
-    reftrack_interp = spline_approximation(track=reftrack_imp,
-                             k_reg=reg_smooth_opts["k_reg"],
-                             s_reg=reg_smooth_opts["s_reg"],
-                             stepsize_prep=stepsize_opts["stepsize_prep"],
-                             stepsize_reg=stepsize_opts["stepsize_reg"],
-                             debug=debug)
+    reftrack_interp = spline_approximation(track=race_track,
+                                           k_reg=reg_smooth_opts["k_reg"],
+                                           s_reg=reg_smooth_opts["s_reg"],
+                                           stepsize_prep=stepsize_opts["stepsize_prep"],
+                                           stepsize_reg=stepsize_opts["stepsize_reg"],
+                                           debug=debug)
 
     # calculate splines
     refpath_interp_cl = np.vstack((reftrack_interp[:, :2], reftrack_interp[0, :2]))

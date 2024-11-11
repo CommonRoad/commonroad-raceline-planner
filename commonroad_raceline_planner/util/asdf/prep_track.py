@@ -2,7 +2,7 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 
-from commonroad_raceline_planner.util.trajectory_planning_helpers.spline_approximation import spline_approximation
+from commonroad_raceline_planner.smoothing.spline_approximation import spline_approximation
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
 from commonroad_raceline_planner.util.trajectory_planning_helpers.check_normals_crossing import check_normals_crossing
 
@@ -20,7 +20,7 @@ def prep_track(reftrack_imp: np.ndarray,
     This function prepares the inserted reference track for optimization.
 
     Inputs:
-    reftrack_imp:               imported track [x_m, y_m, w_tr_right_m, w_tr_left_m]
+    race_track:               imported track [x_m, y_m, w_tr_right_m, w_tr_left_m]
     reg_smooth_opts:            parameters for the spline approximation
     stepsize_opts:              dict containing the stepsizes before spline approximation and after spline interpolation
     debug:                      boolean showing if debug messages should be printed
