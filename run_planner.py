@@ -68,7 +68,6 @@ class RaceLinePlanner:
         """
         Import the track data from the specified file in the configuration.
         """
-
         race_track_ractory = RaceTrackFactory()
         self.race_track: RaceTrack = race_track_ractory.generate_racetrack_from_csv(
             imp_opts=self.config.import_opts,
@@ -88,8 +87,6 @@ class RaceLinePlanner:
 
         # save start time
         self.t_start = time.perf_counter()
-
-
 
     def import_vehicle_dynamics(self):
         """

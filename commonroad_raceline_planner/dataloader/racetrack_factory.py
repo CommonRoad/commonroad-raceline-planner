@@ -5,12 +5,13 @@ import numpy as np
 
 # commonroad
 from commonroad.common.file_reader import CommonRoadFileReader
+from commonroad.scenario.lanelet import LaneletNetwork, Lanelet
 from commonroad.visualization.mp_renderer import MPRenderer
 
 from commonroad_raceline_planner.ractetrack import RaceTrack
 
 # typing
-from typing import Optional
+from typing import Optional, List
 
 class RaceTrackFactory:
     """
@@ -24,7 +25,8 @@ class RaceTrackFactory:
         num_laps: int = 1,
         flip_track: bool = False,
         set_new_start: bool = False,
-        new_start: Optional[np.ndarray] = None
+        new_start: Optional[np.ndarray] = None,
+        vehicle_safe_margin_m: float = 0.5
     ) -> RaceTrack:
         """
         Import racetrack from csv
@@ -80,7 +82,7 @@ class RaceTrackFactory:
         # check minimum track width for vehicle width plus a small safety margin
         w_tr_min = np.amin(reftrack_imp[:, 2] + reftrack_imp[:, 3])
 
-        if w_tr_min < vehicle_width + 0.5:
+        if w_tr_min < vehicle_width + vehicle_safe_margin_m:
             print("WARNING: Minimum track width %.2fm is close to or smaller than vehicle width!" % np.amin(w_tr_min))
 
         return RaceTrack(
@@ -100,9 +102,9 @@ class RaceTrackFactory:
             flip_track: bool = False,
             set_new_start: bool = False,
             new_start: Optional[np.ndarray] = None,
-            removing_distance: float=0.5
+            removing_distance: float = 0.5,
+            vehicle_safe_margin_m: float = 0.5
     ) -> np.ndarray:
-
         """
             Load racetrack from cr scenario
 
@@ -150,14 +152,11 @@ class RaceTrackFactory:
             else:
                 deleted_points.append((i, point))
 
-
         # Print deleted points
-        if deleted_points:
+        if len(deleted_points) > 0:
             print("The following points were deleted because they were too close to the previous point:")
             for index, point in deleted_points:
                 print(f"Index: {index}, Point: {point}")
-        else:
-            print("No points were deleted.")
 
 
         npoints = np.asarray([points[0]['x_m'], points[0]['y_m'], points[0]['w_tr_right_m'], points[0]['w_tr_left_m']])
@@ -169,17 +168,18 @@ class RaceTrackFactory:
 
         # check minimum track width for vehicle width plus a small safety margin
         w_tr_min = np.amin(npoints[:, 2] + npoints[:, 3])
-        if w_tr_min < vehicle_width + 0.5:
+        if w_tr_min < vehicle_width + vehicle_safe_margin_m:
             warnings.warn(
                 f"WARNING: Minimum track width {np.amin(w_tr_min)} is close to or smaller than vehicle width!"
             )
-
         return npoints
 
 
 
     @staticmethod
-    def sort_lanelets_by_id(lanelet_network):
+    def sort_lanelets_by_id(
+            lanelet_network: LaneletNetwork
+    ) -> List[Lanelet]:
         lanelets = lanelet_network.lanelets
         lanelets.sort(key=lambda l: int(l.lanelet_id))
         return lanelets
