@@ -1,6 +1,10 @@
 import numpy as np
-from commonroad_raceline_planner.util.helper_funcs_glob.interp_track import interp_track
-from commonroad_raceline_planner.util.helper_funcs_glob.calc_min_bound_dists import calc_min_bound_dists
+
+# Own code base
+from commonroad_raceline_planner.util.track_processing import (
+    interp_track,
+    calc_min_bound_dists
+)
 
 
 def check_traj(reftrack: np.ndarray,

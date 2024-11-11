@@ -3,6 +3,9 @@ from PIL import Image
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
+
+import os
+import subprocess
 from commonroad.common.file_reader import CommonRoadFileReader
 from commonroad.visualization.mp_renderer import MPRenderer
 
@@ -287,8 +290,7 @@ def plot_yaw_rate_profiles(sp_file_path, mc_file_path):
     plt.show()
 
 
-import os
-import subprocess
+
 
 
 def convert_png_to_svg_embed(png_path, svg_path=None):

@@ -4,33 +4,35 @@ import json
 import os
 import time
 from dataclasses import asdict
-from pathlib import Path
 
 import numpy as np
 from matplotlib import pyplot as plt
 from pathlib import Path
 
 # own package
-import commonroad_raceline_planner.global_trajectory_optimization.opt_mintime_traj as opt_mintime_traj
+import commonroad_raceline_planner.optimization.opt_mintime_traj as opt_mintime_traj
 from commonroad_raceline_planner.util.aziz_helpers.helper_functions import add_to_dict
-from commonroad_raceline_planner.util.aziz_utility.race_line_config import RaceLinePlannerConfiguration
-from commonroad_raceline_planner.util.helper_funcs_glob.import_track import import_track as helper_import_track
-from commonroad_raceline_planner.util.helper_funcs_glob.prep_track import prep_track as helper_prep_track
 from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_veh_dyn_info
-from commonroad_raceline_planner.util.trajectory_planning_helpers.opt_min_curv import opt_min_curv
-from commonroad_raceline_planner.util.trajectory_planning_helpers.opt_shortest_path import opt_shortest_path
+from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
+from commonroad_raceline_planner.optimization.opt_shortest_path import opt_shortest_path
 from commonroad_raceline_planner.util.trajectory_planning_helpers.create_raceline import create_raceline
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_vel_profile import calc_vel_profile
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_t_profile import calc_t_profile
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_head_curv_an import calc_head_curv_an
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_ax_profile import calc_ax_profile
-from commonroad_raceline_planner.util.trajectory_planning_helpers.progressbar import progressbar as tph_progressbar
-from commonroad_raceline_planner.util.helper_funcs_glob.result_plots import result_plots
-from commonroad_raceline_planner.util.helper_funcs_glob.export_traj_race import export_traj_race
-from commonroad_raceline_planner.util.helper_funcs_glob.export_traj_ltpl import export_traj_ltpl
+from commonroad_raceline_planner.util.common import progressbar as tph_progressbar
+from commonroad_raceline_planner.util.visualization.result_plots import result_plots
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
-from commonroad_raceline_planner.util.helper_funcs_glob.prep_track import prep_track
-from commonroad_raceline_planner.util.helper_funcs_glob.check_traj import check_traj
+from commonroad_raceline_planner.util.validation import check_traj
+from commonroad_raceline_planner.configuration.race_line_config import RaceLinePlannerConfiguration
+
+from commonroad_raceline_planner.util.io import (
+    import_track,
+    export_traj_ltpl,
+    export_traj_race
+)
+
+from commonroad_raceline_planner.util.track_processing import prep_track
 
 
 
@@ -107,7 +109,7 @@ class RaceLinePlanner:
         self.t_start = time.perf_counter()
 
         # import track
-        self.reftrack_imp = helper_import_track(
+        self.reftrack_imp = import_track(
             imp_opts=self.config.import_opts,
             file_path=self.file_paths["track_file"],
             width_veh=self.pars["veh_params"]["width"]
@@ -132,7 +134,7 @@ class RaceLinePlanner:
         Prepare the reference track by interpolating and normalizing the imported track data.
         """
         self.reftrack_interp, self.normvec_normalized_interp, self.a_interp, self.coeffs_x_interp, self.coeffs_y_interp = \
-            helper_prep_track(
+            prep_track(
                 reftrack_imp=self.reftrack_imp,
                 reg_smooth_opts=self.pars["reg_smooth_opts"],
                 stepsize_opts=self.pars["stepsize_opts"],
