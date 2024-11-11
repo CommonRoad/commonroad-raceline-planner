@@ -76,6 +76,10 @@ class RaceLinePlanner:
             width_veh=self.pars["veh_params"]["width"]
         )
 
+        self.asdf = race_track_ractory.generate_racetrack_from_cr_scenario(
+            file_path="/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/DEU_Hhr-1_1.xml"
+        )
+
         self.race_track = import_track(
             imp_opts=self.config.import_opts,
             file_path=self.file_paths["track_file"],

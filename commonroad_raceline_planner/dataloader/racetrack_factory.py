@@ -1,3 +1,5 @@
+from logging import warning
+import warnings
 import numpy as np
 
 
@@ -7,6 +9,8 @@ from commonroad.visualization.mp_renderer import MPRenderer
 
 from commonroad_raceline_planner.ractetrack import RaceTrack
 
+# typing
+from typing import Optional
 
 class RaceTrackFactory:
     """
@@ -16,8 +20,11 @@ class RaceTrackFactory:
     @staticmethod
     def generate_racetrack_from_csv(
         file_path: str,
-        imp_opts: dict,
-        width_veh: float
+        vehicle_width: float,
+        num_laps: int = 1,
+        flip_track: bool = False,
+        set_new_start: bool = False,
+        new_start: Optional[np.ndarray] = None
     ) -> RaceTrack:
         """
         Import racetrack from csv
@@ -53,27 +60,27 @@ class RaceTrackFactory:
         else:
             raise IOError("Track file cannot be read!")
 
-        refline_ = np.tile(refline_, (imp_opts["num_laps"], 1))
-        w_tr_r = np.tile(w_tr_r, imp_opts["num_laps"])
-        w_tr_l = np.tile(w_tr_l, imp_opts["num_laps"])
+        refline_ = np.tile(refline_, (num_laps, 1))
+        w_tr_r = np.tile(w_tr_r, num_laps)
+        w_tr_l = np.tile(w_tr_l, num_laps)
 
         # assemble to a single array
         reftrack_imp = np.column_stack((refline_, w_tr_r, w_tr_l))
 
         # check if imported centerline should be flipped, i.e. reverse direction
-        if imp_opts["flip_imp_track"]:
+        if flip_track:
             reftrack_imp = np.flipud(reftrack_imp)
 
         # check if imported centerline should be reordered for a new starting point
-        if imp_opts["set_new_start"]:
-            ind_start = np.argmin(np.power(reftrack_imp[:, 0] - imp_opts["new_start"][0], 2)
-                                  + np.power(reftrack_imp[:, 1] - imp_opts["new_start"][1], 2))
+        if set_new_start:
+            ind_start = np.argmin(np.power(reftrack_imp[:, 0] - new_start[0], 2)
+                                  + np.power(reftrack_imp[:, 1] - new_start[1], 2))
             reftrack_imp = np.roll(reftrack_imp, reftrack_imp.shape[0] - ind_start, axis=0)
 
         # check minimum track width for vehicle width plus a small safety margin
         w_tr_min = np.amin(reftrack_imp[:, 2] + reftrack_imp[:, 3])
 
-        if w_tr_min < width_veh + 0.5:
+        if w_tr_min < vehicle_width + 0.5:
             print("WARNING: Minimum track width %.2fm is close to or smaller than vehicle width!" % np.amin(w_tr_min))
 
         return RaceTrack(
@@ -83,15 +90,21 @@ class RaceTrackFactory:
             w_tr_left_m=reftrack_imp[4]
         )
 
+
+
+    @staticmethod
     def generate_racetrack_from_cr_scenario(
-            self,
             file_path: str,
-            imp_opts: dict,
-            width_veh: float
-    ):
+            vehicle_width: float,
+            num_laps: int = 1,
+            flip_track: bool = False,
+            set_new_start: bool = False,
+            new_start: Optional[np.ndarray] = None,
+            removing_distance: float=0.5
+    ) -> np.ndarray:
 
         """
-            This function converts a CommonRoad XML file to a CSV file.
+            Load racetrack from cr scenario
 
             The CSV file contains the x and y coordinates of each point in the centerline of each lanelet in the lanelet network,
             as well as the distances from each center point to the nearest point in the left and right lines of the lanelet.
@@ -123,7 +136,6 @@ class RaceTrackFactory:
                 })
 
         # Remove colliding points
-        threshold_distance = 0.5  # Increased threshold for colliding points
         filtered_points = []
         last_point = points[0]
         filtered_points.append(last_point)
@@ -132,27 +144,12 @@ class RaceTrackFactory:
         for i, point in enumerate(points[1:], start=1):
             distance = np.linalg.norm(
                 np.array([point['x_m'], point['y_m']]) - np.array([last_point['x_m'], last_point['y_m']]))
-            if distance > threshold_distance:
+            if distance > removing_distance:
                 filtered_points.append(point)
                 last_point = point
             else:
-                # # Average the colliding points
-                # averaged_point = {
-                #     'x_m': (point['x_m'] + last_point['x_m']) / 2,
-                #     'y_m': (point['y_m'] + last_point['y_m']) / 2,
-                #     'w_tr_right_m': (point['w_tr_right_m'] + last_point['w_tr_right_m']) / 2,
-                #     'w_tr_left_m': (point['w_tr_left_m'] + last_point['w_tr_left_m']) / 2
-                # }
-                # filtered_points[-1] = averaged_point
-                # last_point = averaged_point
                 deleted_points.append((i, point))
 
-        # Check if the filtered points form a closed map
-        if np.linalg.norm(np.array([filtered_points[0]['x_m'], filtered_points[0]['y_m']]) - np.array(
-                [filtered_points[-1]['x_m'], filtered_points[-1]['y_m']])) > threshold_distance:
-            print("The map is not closed.")
-        else:
-            print("The map is closed.")
 
         # Print deleted points
         if deleted_points:
@@ -162,7 +159,22 @@ class RaceTrackFactory:
         else:
             print("No points were deleted.")
 
-            return np.asarray(points)
+
+        npoints = np.asarray([points[0]['x_m'], points[0]['y_m'], points[0]['w_tr_right_m'], points[0]['w_tr_left_m']])
+
+        for i, p in enumerate(points[1:]):
+            new_p = np.asarray([points[i]['x_m'], points[i]['y_m'], points[i]['w_tr_right_m'], points[i]['w_tr_left_m']])
+            npoints = np.vstack((npoints, new_p))
+
+
+        # check minimum track width for vehicle width plus a small safety margin
+        w_tr_min = np.amin(npoints[:, 2] + npoints[:, 3])
+        if w_tr_min < vehicle_width + 0.5:
+            warnings.warn(
+                f"WARNING: Minimum track width {np.amin(w_tr_min)} is close to or smaller than vehicle width!"
+            )
+
+        return npoints
 
 
 
