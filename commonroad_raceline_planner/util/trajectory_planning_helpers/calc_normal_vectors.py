@@ -1,5 +1,5 @@
 import numpy as np
-import trajectory_planning_helpers as tph
+from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_normal_vectors_ahead import calc_normal_vectors_ahead
 import math
 
 
@@ -24,7 +24,7 @@ def calc_normal_vectors(psi: np.ndarray) -> np.ndarray:
     """
 
     # calculate normal vectors
-    normvec_normalized = -tph.calc_normal_vectors_ahead.calc_normal_vectors_ahead(psi=psi)
+    normvec_normalized = calc_normal_vectors_ahead(psi=psi)
 
     return normvec_normalized
 

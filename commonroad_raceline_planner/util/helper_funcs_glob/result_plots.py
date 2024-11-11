@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import trajectory_planning_helpers
+from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_normal_vectors import calc_normal_vectors
 
 
 def result_plots(plot_opts: dict,
@@ -34,8 +34,7 @@ def result_plots(plot_opts: dict,
 
     if plot_opts["raceline"]:
         # calculate vehicle boundary points (including safety margin in vehicle width)
-        normvec_normalized_opt = trajectory_planning_helpers.calc_normal_vectors.\
-            calc_normal_vectors(trajectory[:, 3])
+        normvec_normalized_opt = calc_normal_vectors(trajectory[:, 3])
 
         veh_bound1_virt = trajectory[:, 1:3] + normvec_normalized_opt * width_veh_opt / 2
         veh_bound2_virt = trajectory[:, 1:3] - normvec_normalized_opt * width_veh_opt / 2

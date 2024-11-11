@@ -1,5 +1,4 @@
 import numpy as np
-import commonroad_raceline_planner.util.trajectory_planning_helpers as tph
 import sys
 import matplotlib.pyplot as plt
 

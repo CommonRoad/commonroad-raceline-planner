@@ -1,5 +1,5 @@
 import numpy as np
-import trajectory_planning_helpers as tph
+from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_tangent_vectors import calc_tangent_vectors
 import math
 
 
@@ -24,7 +24,7 @@ def calc_normal_vectors_ahead(psi: np.ndarray) -> np.ndarray:
     """
 
     # calculate tangent vectors
-    tangvec_normalized = tph.calc_tangent_vectors.calc_tangent_vectors(psi=psi)
+    tangvec_normalized = calc_tangent_vectors(psi=psi)
 
     # find normal vectors
     normvec_normalized = np.stack((-tangvec_normalized[:, 1], tangvec_normalized[:, 0]), axis=1)

@@ -1,5 +1,8 @@
 import numpy as np
-import trajectory_planning_helpers as tph
+from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_spline_lengths import calc_spline_lengths
+from commonroad_raceline_planner.util.trajectory_planning_helpers.interp_splines import interp_splines
+from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
+
 
 
 def create_raceline(refline: np.ndarray,
@@ -52,18 +55,15 @@ def create_raceline(refline: np.ndarray,
     # calculate new splines on the basis of the raceline
     raceline_cl = np.vstack((raceline, raceline[0]))
 
-    coeffs_x_raceline, coeffs_y_raceline, A_raceline, normvectors_raceline = tph.calc_splines.\
-        calc_splines(path=raceline_cl,
+    coeffs_x_raceline, coeffs_y_raceline, A_raceline, normvectors_raceline = calc_splines(path=raceline_cl,
                      use_dist_scaling=False)
 
     # calculate new spline lengths
-    spline_lengths_raceline = tph.calc_spline_lengths. \
-        calc_spline_lengths(coeffs_x=coeffs_x_raceline,
+    spline_lengths_raceline = calc_spline_lengths(coeffs_x=coeffs_x_raceline,
                             coeffs_y=coeffs_y_raceline)
 
     # interpolate splines for evenly spaced raceline points
-    raceline_interp, spline_inds_raceline_interp, t_values_raceline_interp, s_raceline_interp = tph.\
-        interp_splines.interp_splines(spline_lengths=spline_lengths_raceline,
+    raceline_interp, spline_inds_raceline_interp, t_values_raceline_interp, s_raceline_interp = interp_splines(spline_lengths=spline_lengths_raceline,
                                       coeffs_x=coeffs_x_raceline,
                                       coeffs_y=coeffs_y_raceline,
                                       incl_last_point=False,

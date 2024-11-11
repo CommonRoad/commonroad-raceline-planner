@@ -1,6 +1,6 @@
 import numpy as np
 import math
-import trajectory_planning_helpers.calc_spline_lengths
+from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_spline_lengths import calc_spline_lengths
 
 
 def interp_splines(coeffs_x: np.ndarray,
@@ -78,7 +78,7 @@ def interp_splines(coeffs_x: np.ndarray,
     if stepsize_approx is not None:
         # get the total distance up to the end of every spline (i.e. cumulated distances)
         if spline_lengths is None:
-            spline_lengths = trajectory_planning_helpers.calc_spline_lengths.calc_spline_lengths(coeffs_x=coeffs_x,
+            spline_lengths = calc_spline_lengths(coeffs_x=coeffs_x,
                                                                                                  coeffs_y=coeffs_y,
                                                                                                  quickndirty=False)
 

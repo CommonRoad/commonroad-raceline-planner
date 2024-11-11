@@ -11,8 +11,6 @@ from matplotlib import pyplot as plt
 from pathlib import Path
 
 # own package
-import commonroad_raceline_planner.util.trajectory_planning_helpers as tph
-import commonroad_raceline_planner.util.helper_funcs_glob as helper_funcs_glob
 import commonroad_raceline_planner.global_trajectory_optimization.opt_mintime_traj as opt_mintime_traj
 from commonroad_raceline_planner.util.aziz_helpers.helper_functions import add_to_dict
 from commonroad_raceline_planner.util.aziz_utility.race_line_config import RaceLinePlannerConfiguration
@@ -20,6 +18,20 @@ from commonroad_raceline_planner.util.helper_funcs_glob.import_track import impo
 from commonroad_raceline_planner.util.helper_funcs_glob.prep_track import prep_track as helper_prep_track
 from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_veh_dyn_info
 from commonroad_raceline_planner.util.trajectory_planning_helpers.opt_min_curv import opt_min_curv
+from commonroad_raceline_planner.util.trajectory_planning_helpers.opt_shortest_path import opt_shortest_path
+from commonroad_raceline_planner.util.trajectory_planning_helpers.create_raceline import create_raceline
+from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_vel_profile import calc_vel_profile
+from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_t_profile import calc_t_profile
+from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_head_curv_an import calc_head_curv_an
+from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_ax_profile import calc_ax_profile
+from commonroad_raceline_planner.util.trajectory_planning_helpers.progressbar import progressbar as tph_progressbar
+from commonroad_raceline_planner.util.helper_funcs_glob.result_plots import result_plots
+from commonroad_raceline_planner.util.helper_funcs_glob.export_traj_race import export_traj_race
+from commonroad_raceline_planner.util.helper_funcs_glob.export_traj_ltpl import export_traj_ltpl
+from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
+from commonroad_raceline_planner.util.helper_funcs_glob.prep_track import prep_track
+from commonroad_raceline_planner.util.helper_funcs_glob.check_traj import check_traj
+
 
 
 class RaceLinePlanner:
@@ -145,7 +157,7 @@ class RaceLinePlanner:
 
         # Call optimization
         if self.config.opt_type == 'shortest_path':
-            self.alpha_opt = tph.opt_shortest_path.opt_shortest_path(
+            self.alpha_opt = opt_shortest_path(
                 reftrack=self.reftrack_interp,
                 normvectors=self.normvec_normalized_interp,
                 w_veh=self.pars["optim_opts"]["width_opt"],
@@ -197,7 +209,7 @@ class RaceLinePlanner:
 
             # use spline approximation a second time
             self.reftrack_interp, self.normvec_normalized_interp, self.a_interp = \
-                helper_funcs_glob.src.prep_track.prep_track(reftrack_imp=self.racetrack_mintime,
+                prep_track(reftrack_imp=self.racetrack_mintime,
                                                             reg_smooth_opts=self.pars["reg_smooth_opts"],
                                                             stepsize_opts=self.pars["stepsize_opts"],
                                                             debug=False,
@@ -208,7 +220,7 @@ class RaceLinePlanner:
             self. racetrack_mintime_reopt = np.column_stack((self.reftrack_interp[:, :2], self.w_tr_tmp, self.w_tr_tmp))
 
             # call mincurv reoptimization
-            self.alpha_opt = tph.opt_min_curv.opt_min_curv(reftrack=self.racetrack_mintime_reopt,
+            self.alpha_opt = opt_min_curv(reftrack=self.racetrack_mintime_reopt,
                                                       normvectors=self.normvec_normalized_interp,
                                                       A=self.a_interp,
                                                       kappa_bound=self.pars["veh_params"]["curvlim"],
@@ -239,7 +251,7 @@ class RaceLinePlanner:
         """
         self.raceline_interp, self.a_opt, self.coeffs_x_opt, self.coeffs_y_opt, \
             self.spline_inds_opt_interp, self.t_vals_opt_interp, self.s_points_opt_interp, \
-            self.spline_lengths_opt, self.el_lengths_opt_interp = tph.create_raceline.create_raceline(
+            self.spline_lengths_opt, self.el_lengths_opt_interp = create_raceline(
             refline=self.reftrack_interp[:, :2],
             normvectors=self.normvec_normalized_interp,
             alpha=self.alpha_opt,
@@ -251,7 +263,7 @@ class RaceLinePlanner:
         Calculate the heading and curvature of the raceline.
         """
         # calculate heading and curvature (analytically)
-        self.psi_vel_opt, self.kappa_opt = tph.calc_head_curv_an.calc_head_curv_an(
+        self.psi_vel_opt, self.kappa_opt = calc_head_curv_an(
             coeffs_x=self.coeffs_x_opt,
             coeffs_y=self.coeffs_y_opt,
             ind_spls=self.spline_inds_opt_interp,
@@ -262,7 +274,7 @@ class RaceLinePlanner:
         """
         Calculate the velocity profile of the raceline.
         """
-        self.vx_profile_opt = tph.calc_vel_profile.calc_vel_profile(
+        self.vx_profile_opt = calc_vel_profile(
             ggv=self.ggv,
             ax_max_machines=self.ax_max_machines,
             v_max=self.pars["veh_params"]["v_max"],
@@ -277,14 +289,14 @@ class RaceLinePlanner:
 
         # calculate longitudinal acceleration profile
         self.vx_profile_opt_cl = np.append(self.vx_profile_opt, self.vx_profile_opt[0])
-        self.ax_profile_opt = tph.calc_ax_profile.calc_ax_profile(
+        self.ax_profile_opt = calc_ax_profile(
             vx_profile=self.vx_profile_opt_cl,
             el_lengths=self.el_lengths_opt_interp,
             eq_length_output=False
         )
 
         # calculate laptime
-        self.t_profile_cl = tph.calc_t_profile.calc_t_profile(
+        self.t_profile_cl = calc_t_profile(
             vx_profile=self.vx_profile_opt,
             ax_profile=self.ax_profile_opt,
             el_lengths=self.el_lengths_opt_interp
@@ -331,7 +343,7 @@ class RaceLinePlanner:
 
         for i, top_speed in enumerate(top_speeds):
             for j, ggv_scale in enumerate(ggv_scales):
-                tph.progressbar.progressbar(
+                tph_progressbar(
                     i * ggv_scales.shape[0] + j,
                     top_speeds.shape[0] * ggv_scales.shape[0],
                     prefix="Simulating laptimes "
@@ -340,7 +352,7 @@ class RaceLinePlanner:
                 ggv_mod = np.copy(self.ggv)
                 ggv_mod[:, 1:] *= ggv_scale
 
-                vx_profile_opt = tph.calc_vel_profile.calc_vel_profile(
+                vx_profile_opt = calc_vel_profile(
                     ggv=ggv_mod,
                     ax_max_machines=self.ax_max_machines,
                     v_max=top_speed,
@@ -355,14 +367,14 @@ class RaceLinePlanner:
 
                 # calculate longitudinal acceleration profile
                 vx_profile_opt_cl = np.append(vx_profile_opt, vx_profile_opt[0])
-                ax_profile_opt = tph.calc_ax_profile.calc_ax_profile(
+                ax_profile_opt = calc_ax_profile(
                     vx_profile=vx_profile_opt_cl,
                     el_lengths=self.el_lengths_opt_interp,
                     eq_length_output=False
                 )
 
                 # calculate laptime
-                t_profile_cl = tph.calc_t_profile.calc_t_profile(
+                t_profile_cl = calc_t_profile(
                     vx_profile=vx_profile_opt,
                     ax_profile=ax_profile_opt,
                     el_lengths=self.el_lengths_opt_interp
@@ -398,8 +410,7 @@ class RaceLinePlanner:
         """
         Check the trajectory for errors.
         """
-        self.bound1, self.bound2 = helper_funcs_glob.src.check_traj. \
-            check_traj(reftrack=self.reftrack_interp,
+        self.bound1, self.bound2 = check_traj(reftrack=self.reftrack_interp,
                        reftrack_normvec_normalized=self.normvec_normalized_interp,
                        length_veh=self.pars["veh_params"]["length"],
                        width_veh=self.pars["veh_params"]["width"],
@@ -424,12 +435,12 @@ class RaceLinePlanner:
 
         # export race trajectory  to CSV
         if "traj_race_export" in files_paths_asdict.keys():
-            helper_funcs_glob.src.export_traj_race.export_traj_race(file_paths=files_paths_asdict,
+            export_traj_race(file_paths=files_paths_asdict,
                                                                     traj_race=self.traj_race_cl)
 
         # if requested, export trajectory including map information (via normal vectors) to CSV
         if "traj_ltpl_export" in files_paths_asdict.keys():
-            helper_funcs_glob.src.export_traj_ltpl.export_traj_ltpl(files_paths_asdict,
+            export_traj_ltpl(files_paths_asdict,
                                                                     spline_lengths_opt=self.spline_lengths_opt,
                                                                     trajectory_opt=self.trajectory_opt,
                                                                     reftrack=self.reftrack_interp,
@@ -449,7 +460,7 @@ class RaceLinePlanner:
             # try to extract four times as many points as in the interpolated version (in order to hold more details)
             n_skip = max(int(self.reftrack_imp.shape[0] / (self.bound1.shape[0] * 4)), 1)
 
-            _, _, _, normvec_imp = tph.calc_splines.calc_splines(path=np.vstack((self.reftrack_imp[::n_skip, 0:2],
+            _, _, _, normvec_imp = calc_splines(path=np.vstack((self.reftrack_imp[::n_skip, 0:2],
                                                                                  self.reftrack_imp[0, 0:2])))
 
             bound1_imp = self.reftrack_imp[::n_skip, :2] + normvec_imp * np.expand_dims(self.reftrack_imp[::n_skip, 2],
@@ -458,7 +469,7 @@ class RaceLinePlanner:
                                                                                         1)
 
         # plot results
-        helper_funcs_glob.src.result_plots.result_plots(plot_opts=self.config.debug['plot_opts'],
+        result_plots(plot_opts=self.config.debug['plot_opts'],
                                                         width_veh_opt=self.pars["optim_opts"]["width_opt"],
                                                         width_veh_real=self.pars["veh_params"]["width"],
                                                         refline=self.reftrack_interp[:, :2],

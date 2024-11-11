@@ -1,6 +1,6 @@
 import numpy as np
 import math
-import trajectory_planning_helpers.normalize_psi
+from commonroad_raceline_planner.util.trajectory_planning_helpers.normalize_psi import normalize_psi
 
 
 def calc_head_curv_an(coeffs_x: np.ndarray,
@@ -69,7 +69,7 @@ def calc_head_curv_an(coeffs_x: np.ndarray,
 
     # calculate heading psi (pi/2 must be substracted due to our convention that psi = 0 is north)
     psi = np.arctan2(y_d, x_d) - math.pi / 2
-    psi = trajectory_planning_helpers.normalize_psi.normalize_psi(psi)
+    psi = normalize_psi(psi)
 
     # ------------------------------------------------------------------------------------------------------------------
     # CALCULATE CURVATURE ----------------------------------------------------------------------------------------------

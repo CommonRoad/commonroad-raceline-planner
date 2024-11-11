@@ -1,6 +1,6 @@
 import numpy as np
 import math
-import trajectory_planning_helpers.conv_filt
+from commonroad_raceline_planner.util.trajectory_planning_helpers.conv_filt import conv_filt
 
 
 def calc_vel_profile(ax_max_machines: np.ndarray,
@@ -208,7 +208,7 @@ def calc_vel_profile(ax_max_machines: np.ndarray,
     # ------------------------------------------------------------------------------------------------------------------
 
     if filt_window is not None:
-        vx_profile = trajectory_planning_helpers.conv_filt.conv_filt(signal=vx_profile,
+        vx_profile = conv_filt(signal=vx_profile,
                                                                      filt_window=filt_window,
                                                                      closed=closed)
 

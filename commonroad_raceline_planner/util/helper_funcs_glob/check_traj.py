@@ -1,5 +1,6 @@
 import numpy as np
-import helper_funcs_glob
+from commonroad_raceline_planner.util.helper_funcs_glob.interp_track import interp_track
+from commonroad_raceline_planner.util.helper_funcs_glob.calc_min_bound_dists import calc_min_bound_dists
 
 
 def check_traj(reftrack: np.ndarray,
@@ -54,13 +55,13 @@ def check_traj(reftrack: np.ndarray,
     bound_r_tmp = np.column_stack((bound_r, np.zeros((bound_r.shape[0], 2))))
     bound_l_tmp = np.column_stack((bound_l, np.zeros((bound_l.shape[0], 2))))
 
-    bound_r_interp = helper_funcs_glob.src.interp_track.interp_track(reftrack=bound_r_tmp,
+    bound_r_interp = interp_track(reftrack=bound_r_tmp,
                                                                      stepsize_approx=1.0)[0]
-    bound_l_interp = helper_funcs_glob.src.interp_track.interp_track(reftrack=bound_l_tmp,
+    bound_l_interp = interp_track(reftrack=bound_l_tmp,
                                                                      stepsize_approx=1.0)[0]
 
     # calculate minimum distances of every trajectory point to the boundaries
-    min_dists = helper_funcs_glob.src.calc_min_bound_dists.calc_min_bound_dists(trajectory=trajectory,
+    min_dists = calc_min_bound_dists(trajectory=trajectory,
                                                                                 bound1=bound_r_interp,
                                                                                 bound2=bound_l_interp,
                                                                                 length_veh=length_veh,

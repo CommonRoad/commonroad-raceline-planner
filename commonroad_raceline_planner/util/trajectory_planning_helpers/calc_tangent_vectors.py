@@ -1,6 +1,6 @@
 import numpy as np
 import math
-import trajectory_planning_helpers.normalize_psi
+from commonroad_raceline_planner.util.trajectory_planning_helpers.normalize_psi import normalize_psi
 
 
 def calc_tangent_vectors(psi: np.ndarray) -> np.ndarray:
@@ -27,7 +27,7 @@ def calc_tangent_vectors(psi: np.ndarray) -> np.ndarray:
 
     # remap psi_vel to x-axis
     psi_ += math.pi / 2
-    psi_ = trajectory_planning_helpers.normalize_psi.normalize_psi(psi_)
+    psi_ = normalize_psi(psi_)
 
     # get normalized tangent vectors
     tangvec_normalized = np.zeros((psi_.size, 2))
