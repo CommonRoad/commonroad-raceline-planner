@@ -28,9 +28,11 @@ from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines i
 from commonroad_raceline_planner.util.validation import check_traj
 from commonroad_raceline_planner.configuration.race_line_config import RaceLinePlannerConfiguration
 
+from commonroad_raceline_planner.configuration.vehicle_config import setup_vehicle_parameters
+
 from commonroad_raceline_planner.util.io import (
     export_traj_ltpl,
-    export_traj_race
+    export_traj_race, import_track
 )
 
 from commonroad_raceline_planner.util.track_processing import preprocess_track
@@ -61,45 +63,10 @@ class RaceLinePlanner:
         """
         Set up the vehicle parameters by reading from the configuration file.
         """
-        parser = configparser.ConfigParser()
-        pars = {}
 
-        parser.read(os.path.join(self.file_paths["module"], self.file_paths["veh_params_file"]))
-        print(os.path.join(self.file_paths["module"], self.file_paths["veh_params_file"]))
-
-
-        # Add attributes to dict
-        add_to_dict(pars, "ggv_file", json.loads(parser.get('GENERAL_OPTIONS', 'ggv_file')))
-        add_to_dict(pars, "ax_max_machines_file", json.loads(parser.get('GENERAL_OPTIONS', 'ax_max_machines_file')))
-        add_to_dict(pars, "stepsize_opts", json.loads(parser.get('GENERAL_OPTIONS', 'stepsize_opts')))
-        add_to_dict(pars, "reg_smooth_opts", json.loads(parser.get('GENERAL_OPTIONS', 'reg_smooth_opts')))
-        add_to_dict(pars, "veh_params", json.loads(parser.get('GENERAL_OPTIONS', 'veh_params')))
-        add_to_dict(pars, "vel_calc_opts", json.loads(parser.get('GENERAL_OPTIONS', 'vel_calc_opts')))
-
-        if self.config.opt_type == 'shortest_path':
-            pars["optim_opts"] = json.loads(parser.get('OPTIMIZATION_OPTIONS', 'optim_opts_shortest_path'))
-        elif self.config.opt_type == 'mincurv':
-            pars["optim_opts"] = json.loads(parser.get('OPTIMIZATION_OPTIONS', 'optim_opts_mincurv'))
-        elif self.config.opt_type == 'mintime':
-            pars["curv_calc_opts"] = json.loads(parser.get('GENERAL_OPTIONS', 'curv_calc_opts'))
-            pars["optim_opts"] = json.loads(parser.get('OPTIMIZATION_OPTIONS', 'optim_opts_mintime'))
-            pars["vehicle_params_mintime"] = json.loads(parser.get('OPTIMIZATION_OPTIONS', 'vehicle_params_mintime'))
-            pars["tire_params_mintime"] = json.loads(parser.get('OPTIMIZATION_OPTIONS', 'tire_params_mintime'))
-            pars["pwr_params_mintime"] = json.loads(parser.get('OPTIMIZATION_OPTIONS', 'pwr_params_mintime'))
-
-            # modification of mintime options/parameters
-            pars["optim_opts"]["var_friction"] = self.config.mintime_opts["var_friction"]
-            pars["optim_opts"]["warm_start"] = self.config.mintime_opts["warm_start"]
-            pars["vehicle_params_mintime"]["wheelbase"] = (pars["vehicle_params_mintime"]["wheelbase_front"]
-                                                           + pars["vehicle_params_mintime"]["wheelbase_rear"])
-
-        self.pars = pars
-
-        if not (self.config.opt_type == 'mintime' and not self.config.mintime_opts['recalc_vel_profile_by_tph']):
-            add_to_dict(self.file_paths, "ggv_file",
-                        os.path.join(self.file_paths["module"], "inputs", "veh_dyn_info", pars["ggv_file"]))
-            add_to_dict(self.file_paths, "ax_max_machines_file",
-                        os.path.join(self.file_paths["module"], "inputs", "veh_dyn_info", pars["ax_max_machines_file"]))
+        self.pars = setup_vehicle_parameters(
+            config=self.config
+        )
 
     def import_track(self):
         """
@@ -108,6 +75,12 @@ class RaceLinePlanner:
 
         race_track_ractory = RaceTrackFactory()
         self.race_track: RaceTrack = race_track_ractory.generate_racetrack_from_csv(
+            imp_opts=self.config.import_opts,
+            file_path=self.file_paths["track_file"],
+            width_veh=self.pars["veh_params"]["width"]
+        )
+
+        self.race_track = import_track(
             imp_opts=self.config.import_opts,
             file_path=self.file_paths["track_file"],
             width_veh=self.pars["veh_params"]["width"]
