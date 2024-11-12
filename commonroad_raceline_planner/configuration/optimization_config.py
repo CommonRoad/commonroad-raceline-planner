@@ -1,9 +1,22 @@
+import enum
+import os.path
 from dataclasses import dataclass
 from pathlib import Path
 from configparser import ConfigParser
+import json
+
+# own code base
+from base_config import BaseConfigFactory
 
 # typing
 from typing import Union
+
+@enum.unique
+class OptimizationType(enum.Enum):
+    SHORTEST_PATH = "shortest_path"
+    MINIMUM_CURVATURE = "mincurv"
+    MINIMUM_LAPTIME = "mintime"
+
 
 #----- Optimization Config
 @dataclass
@@ -24,58 +37,64 @@ class OptimizationConfig:
 
     def __post_init__(self):
         if self.opt_shortest_path_config is None and self.opt_min_curvature_config is None:
-            raise ValueError('Config not set')
+            raise ValueError('No config not set')
 
 
-
-
-
-
-class OptimizationConfigFactory:
+# - Factory
+class OptimizationConfigFactory(BaseConfigFactory):
     """
     Generates optimization config from .ini file
     """
-    def __init__(self):
-        self.parser = ConfigParser()
-
 
     def generate_from_racecar_ini(
             self,
-            path_to_racecar_ini: Union[Path, str]
+            path_to_racecar_ini: Union[Path, str],
+            optimization_type: OptimizationType
     ) -> OptimizationConfig:
+        """
+        Generates Optimization Config from racecar ini
+        :param path_to_racecar_ini: absolut path to racecar ini
+        :param optimization_type: optimization type
+        :return: optimization config object
+        """
+
+        # sanity check
+        if not self._sanity_check_ini(path_to_racecar_ini=path_to_racecar_ini):
+            raise FileNotFoundError(f'Did not find .ini file at absolute path {path_to_racecar_ini}')
 
         # pars .init file
-        self.parser.read(path_to_racecar_ini)
+        self._parser.read(path_to_racecar_ini)
 
-        # Add attributes to dict
-        add_to_dict(pars, "ggv_file", json.loads(parser.get('GENERAL_OPTIONS', 'ggv_file')))
-        add_to_dict(pars, "ax_max_machines_file", json.loads(parser.get('GENERAL_OPTIONS', 'ax_max_machines_file')))
-        add_to_dict(pars, "stepsize_opts", json.loads(parser.get('GENERAL_OPTIONS', 'stepsize_opts')))
-        add_to_dict(pars, "reg_smooth_opts", json.loads(parser.get('GENERAL_OPTIONS', 'reg_smooth_opts')))
-        add_to_dict(pars, "veh_params", json.loads(parser.get('GENERAL_OPTIONS', 'veh_params')))
-        add_to_dict(pars, "vel_calc_opts", json.loads(parser.get('GENERAL_OPTIONS', 'vel_calc_opts')))
+        opt_shortest_path_config: Union[OptShortestPathConfig, None] = None
+        opt_min_curvature_config: Union[OptMinimumCurvatureConfig, None] = None
 
-        if config.opt_type == 'shortest_path':
-            pars["optim_opts"] = json.loads(parser.get('OPTIMIZATION_OPTIONS', 'optim_opts_shortest_path'))
-        elif config.opt_type == 'mincurv':
-            pars["optim_opts"] = json.loads(parser.get('OPTIMIZATION_OPTIONS', 'optim_opts_mincurv'))
-        elif config.opt_type == 'mintime':
-            pars["curv_calc_opts"] = json.loads(parser.get('GENERAL_OPTIONS', 'curv_calc_opts'))
-            pars["optim_opts"] = json.loads(parser.get('OPTIMIZATION_OPTIONS', 'optim_opts_mintime'))
-            pars["vehicle_params_mintime"] = json.loads(parser.get('OPTIMIZATION_OPTIONS', 'vehicle_params_mintime'))
-            pars["tire_params_mintime"] = json.loads(parser.get('OPTIMIZATION_OPTIONS', 'tire_params_mintime'))
-            pars["pwr_params_mintime"] = json.loads(parser.get('OPTIMIZATION_OPTIONS', 'pwr_params_mintime'))
+        # transform to sub-data classes
+        if optimization_type == OptimizationType.SHORTEST_PATH:
+            conf = json.loads(
+                self._parser.get(
+                    section='OPTIMIZATION_OPTIONS',
+                    option='optim_opts_shortest_path'
+                )
+            )
+            opt_shortest_path_config = OptShortestPathConfig(
+                vehicle_width_opt=conf["width_opt"]
+            )
+        elif optimization_type == OptimizationType.MINIMUM_CURVATURE:
+            conf = json.loads(
+                self._parser.get(
+                    section='OPTIMIZATION_OPTIONS',
+                    option='optim_opts_mincurv'
+                )
+            )
+            opt_min_curvature_config = OptMinimumCurvatureConfig(
+                vehicle_width_opt=conf["width_opt"],
+                min_iterations=conf["iqp_iters_min"],
+                allowed_curvature_error=conf["iqp_curverror_allowed"]
+            )
+        else:
+            raise ValueError(f"Optimization type {optimization_type} not a valid option.")
 
-            # modification of mintime options/parameters
-            pars["optim_opts"]["var_friction"] = config.mintime_opts["var_friction"]
-            pars["optim_opts"]["warm_start"] = config.mintime_opts["warm_start"]
-            pars["vehicle_params_mintime"]["wheelbase"] = (pars["vehicle_params_mintime"]["wheelbase_front"]
-                                                           + pars["vehicle_params_mintime"]["wheelbase_rear"])
-
-        if not (config.opt_type == 'mintime' and not config.mintime_opts['recalc_vel_profile_by_tph']):
-            add_to_dict(file_paths, "ggv_file",
-                        os.path.join(file_paths["module"], "inputs", "veh_dyn_info", pars["ggv_file"]))
-            add_to_dict(file_paths, "ax_max_machines_file",
-                        os.path.join(file_paths["module"], "inputs", "veh_dyn_info", pars["ax_max_machines_file"]))
-
-        return pars
+        return OptimizationConfig(
+            opt_shortest_path_config=opt_shortest_path_config,
+            opt_min_curvature_config=opt_min_curvature_config
+        )
