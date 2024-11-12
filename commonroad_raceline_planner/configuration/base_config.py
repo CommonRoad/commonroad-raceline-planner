@@ -14,7 +14,6 @@ class BaseConfigFactory(ABC):
     def __init__(self):
         self._parser = ConfigParser()
 
-
     @staticmethod
     def _sanity_check_ini(
             path_to_racecar_ini: Union[Path, str]

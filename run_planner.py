@@ -8,11 +8,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 from pathlib import Path
 
-from commonroad_raceline_planner.configuration.overall_config import OverallConfig, OverallConfigFactory
+from commonroad_raceline_planner.configuration.computation_config import ComputationConfig, ComputationConfigFactory
 # own package
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
-from commonroad_raceline_planner.raceline import RaceLine, RaceLineFactory
-from commonroad_raceline_planner.ractetrack import RaceTrack
 from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_veh_dyn_info
 from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
 from commonroad_raceline_planner.optimization.opt_shortest_path import opt_shortest_path
@@ -25,13 +23,13 @@ from commonroad_raceline_planner.util.common import progressbar as tph_progressb
 from commonroad_raceline_planner.util.visualization.result_plots import result_plots
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
 from commonroad_raceline_planner.util.validation import check_traj
-from commonroad_raceline_planner.configuration.race_line_config import RaceLinePlannerConfiguration
+from commonroad_raceline_planner.configuration.execution_config import ExecutionConfig
 
 from commonroad_raceline_planner.configuration.general_config import setup_vehicle_parameters
 
 from commonroad_raceline_planner.util.io import (
     export_traj_ltpl,
-    export_traj_race, import_track
+    export_traj_race,
 )
 
 from commonroad_raceline_planner.util.track_processing import preprocess_track
@@ -41,7 +39,7 @@ from commonroad_raceline_planner.util.track_processing import preprocess_track
 class RaceLinePlanner:
     def __init__(
             self,
-            config: RaceLinePlannerConfiguration
+            config: ExecutionConfig
     ):
         """
         Initialize the RaceLinePlanner with a given configuration.
@@ -49,7 +47,7 @@ class RaceLinePlanner:
         :param config: The configuration for the RaceLinePlanner.
         """
         self.pars = {}
-        self._overall_config: OverallConfig = None
+        self._overall_config: ComputationConfig = None
         self.config = config
         self.file_paths = config.file_paths
         # Add module path to file_paths
@@ -69,12 +67,9 @@ class RaceLinePlanner:
 
         # race_car_ini_path
         path_to_racecar_ini=os.path.join(config.file_paths["module"], config.file_paths["veh_params_file"])
-        self._overall_config = OverallConfigFactory().generate_from_racecar_ini(
+        self._overall_config = ComputationConfigFactory().generate_from_racecar_ini(
             path_to_racecar_ini=path_to_racecar_ini
         )
-
-
-
 
     def import_track(self) -> None:
         """
@@ -515,6 +510,6 @@ class RaceLinePlanner:
 if __name__ == "__main__":
     config_path: Path = Path(__file__).parents[0] / "configurations/race_line_planner_config.yaml"
 
-    config = RaceLinePlannerConfiguration.load(config_path)
+    config = ExecutionConfig.load(config_path)
     planner = RaceLinePlanner(config)
     planner.run()

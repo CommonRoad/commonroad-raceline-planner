@@ -18,15 +18,14 @@ from typing import Union
 
 
 @dataclass
-class OverallConfig:
+class ComputationConfig:
     # TODO: Find better name
     general_config: GeneralConfig
     optimization_config: OptimizationConfig
 
 
-
 # - Factory
-class OverallConfigFactory(BaseConfigFactory):
+class ComputationConfigFactory(BaseConfigFactory):
     """
     Generates overall config from .ini file
     """
@@ -34,10 +33,10 @@ class OverallConfigFactory(BaseConfigFactory):
     def generate_from_racecar_ini(
             self,
             path_to_racecar_ini: Union[Path, str],
-            optimization_type: OptimizationType=OptimizationType.MINIMUM_CURVATURE
-    ) -> OverallConfig:
+            optimization_type: OptimizationType = OptimizationType.MINIMUM_CURVATURE
+    ) -> ComputationConfig:
 
-        # TODO: currently doubled sanity check
+        # TODO: remove currently doubled sanity check
         # sanity check
         if not self._sanity_check_ini(path_to_racecar_ini=path_to_racecar_ini):
             raise FileNotFoundError(f'Did not find .ini file at absolute path {path_to_racecar_ini}')
@@ -52,7 +51,7 @@ class OverallConfigFactory(BaseConfigFactory):
             optimization_type=optimization_type
         )
 
-        return OverallConfig(
+        return ComputationConfig(
             general_config=general_config,
             optimization_config=optimization_config
         )

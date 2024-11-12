@@ -74,7 +74,7 @@ class FilePathConfiguration:
 
 
 @dataclass
-class RaceLinePlannerConfiguration:
+class ExecutionConfig:
     debug: DebugConfiguration = DebugConfiguration()
     import_opts: ImportOptions = ImportOptions()
     mintime_opts: MintimeOptions = MintimeOptions()
@@ -83,7 +83,7 @@ class RaceLinePlannerConfiguration:
     opt_type: str = "shortest_path"
 
     @staticmethod
-    def load(file_path: str) -> 'RaceLinePlannerConfiguration':
+    def load(file_path: str) -> 'ExecutionConfig':
         with open(file_path, 'r') as file:
             config_dict = yaml.safe_load(file)
-        return RaceLinePlannerConfiguration(**config_dict)
+        return ExecutionConfig(**config_dict)
