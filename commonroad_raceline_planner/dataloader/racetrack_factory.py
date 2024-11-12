@@ -83,7 +83,12 @@ class RaceTrackFactory:
         w_tr_min = np.amin(reftrack_imp[:, 2] + reftrack_imp[:, 3])
 
         if w_tr_min < vehicle_width + vehicle_safe_margin_m:
-            print("WARNING: Minimum track width %.2fm is close to or smaller than vehicle width!" % np.amin(w_tr_min))
+            warnings.warn(
+                f"Minimum track width={np.amin(w_tr_min)}, "
+                f"which is close to or smaller than vehicle width {vehicle_width} !"
+            )
+
+        return reftrack_imp
 
         return RaceTrack(
             x_m=reftrack_imp[1],
@@ -166,6 +171,17 @@ class RaceTrackFactory:
             npoints = np.vstack((npoints, new_p))
 
 
+        # check if imported centerline should be flipped, i.e. reverse direction
+        if flip_track:
+            npoints = np.flipud(npoints)
+
+        # check if imported centerline should be reordered for a new starting point
+        if set_new_start:
+            ind_start = np.argmin(np.power(npoints[:, 0] - new_start[0], 2)
+                                  + np.power(npoints[:, 1] - new_start[1], 2))
+            npoints = np.roll(npoints, npoints.shape[0] - ind_start, axis=0)
+
+
         # check minimum track width for vehicle width plus a small safety margin
         w_tr_min = np.amin(npoints[:, 2] + npoints[:, 3])
         if w_tr_min < vehicle_width + vehicle_safe_margin_m:
@@ -173,6 +189,9 @@ class RaceTrackFactory:
                 f"WARNING: Minimum track width {np.amin(w_tr_min)} is close to or smaller than vehicle width!"
             )
         return npoints
+
+
+
 
 
 

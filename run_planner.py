@@ -10,6 +10,7 @@ from pathlib import Path
 
 # own package
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
+from commonroad_raceline_planner.raceline import RaceLine, RaceLineFactory
 from commonroad_raceline_planner.ractetrack import RaceTrack
 from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_veh_dyn_info
 from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
@@ -25,7 +26,7 @@ from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines i
 from commonroad_raceline_planner.util.validation import check_traj
 from commonroad_raceline_planner.configuration.race_line_config import RaceLinePlannerConfiguration
 
-from commonroad_raceline_planner.configuration.vehicle_config import setup_vehicle_parameters
+from commonroad_raceline_planner.configuration.general_config import setup_vehicle_parameters
 
 from commonroad_raceline_planner.util.io import (
     export_traj_ltpl,
@@ -64,25 +65,20 @@ class RaceLinePlanner:
             config=self.config
         )
 
-    def import_track(self):
+    def import_track(self) -> None:
         """
         Import the track data from the specified file in the configuration.
         """
         race_track_ractory = RaceTrackFactory()
-        self.race_track: RaceTrack = race_track_ractory.generate_racetrack_from_csv(
-            imp_opts=self.config.import_opts,
+
+        self.race_track = race_track_ractory.generate_racetrack_from_csv(
             file_path=self.file_paths["track_file"],
-            width_veh=self.pars["veh_params"]["width"]
+            vehicle_width=self.pars["veh_params"]["width"]
         )
 
-        self.asdf = race_track_ractory.generate_racetrack_from_cr_scenario(
-            file_path="/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/DEU_Hhr-1_1.xml"
-        )
-
-        self.race_track = import_track(
-            imp_opts=self.config.import_opts,
-            file_path=self.file_paths["track_file"],
-            width_veh=self.pars["veh_params"]["width"]
+        self.race_track_cr = race_track_ractory.generate_racetrack_from_cr_scenario(
+            file_path="/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/DEU_Hhr-1_1.xml",
+            vehicle_width=self.pars["veh_params"]["width"]
         )
 
         # save start time
@@ -479,6 +475,8 @@ class RaceLinePlanner:
         with open(self.file_paths["velocity_profile_export"], 'w') as f:
             json.dump(velocity_profile, f)
         print("INFO: Finished export of velocity profile:", time.strftime("%H:%M:%S"))
+
+
 
     def run(self):
         """

@@ -1,13 +1,66 @@
 import configparser
-import copy
 import json
 import os
+from dataclasses import dataclass
+from pathlib import Path
+
 from commonroad_raceline_planner.configuration.race_line_config import RaceLinePlannerConfiguration
 from commonroad_raceline_planner.util.aziz_helpers.helper_functions import add_to_dict
 
 
 # typing
-from typing import Dict
+from typing import Dict, Union
+
+
+@dataclass
+class StepsizeConfig:
+    stepsize_preperation: float
+    stepsize_regression: float
+    stepsize_interp_after_opt: float
+
+
+@dataclass
+class SmoothingConfig:
+    k_reg: float
+    s_reg: float
+
+
+@dataclass
+class CurvatureCalcConfig:
+    d_preview_curv: float
+    d_review_curv: float
+    d_preview_head: float
+    d_review_head: float
+
+
+@dataclass
+class VehicleParams:
+    v_max: float
+    length: float
+    width: float
+    mass: float
+    drag_coefficient: float
+    curvature_limit: float
+    g: float
+
+
+@dataclass
+class VehicleCalcOptions:
+    dyn_model_exp: float
+    velocity_profile_filter: Union[float, None]
+
+
+@dataclass
+class GeneralConfig:
+    ggv_file_path: Union[Path, str]
+    ax_max_machines_file_path: [Path, str]
+    stepsize_config: StepsizeConfig
+    smoothing_config: SmoothingConfig
+    curvature_calc_config: CurvatureCalcConfig
+    vehicle_params: VehicleParams
+    vehicle_calc_options: VehicleCalcOptions
+
+
 
 def setup_vehicle_parameters(
     config: RaceLinePlannerConfiguration,
