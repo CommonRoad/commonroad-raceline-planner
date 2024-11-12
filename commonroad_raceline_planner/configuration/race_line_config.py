@@ -1,8 +1,9 @@
-import os
 import numpy as np
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any, List
 import yaml
+
+# typing
+from typing import Optional, Dict, List
 
 
 @dataclass

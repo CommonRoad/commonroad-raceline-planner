@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from pathlib import Path
 
+from commonroad_raceline_planner.configuration.overall_config import OverallConfig, OverallConfigFactory
 # own package
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
 from commonroad_raceline_planner.raceline import RaceLine, RaceLineFactory
@@ -48,6 +49,7 @@ class RaceLinePlanner:
         :param config: The configuration for the RaceLinePlanner.
         """
         self.pars = {}
+        self._overall_config: OverallConfig = None
         self.config = config
         self.file_paths = config.file_paths
         # Add module path to file_paths
@@ -64,6 +66,15 @@ class RaceLinePlanner:
         self.pars = setup_vehicle_parameters(
             config=self.config
         )
+
+        # race_car_ini_path
+        path_to_racecar_ini=os.path.join(config.file_paths["module"], config.file_paths["veh_params_file"])
+        self._overall_config = OverallConfigFactory().generate_from_racecar_ini(
+            path_to_racecar_ini=path_to_racecar_ini
+        )
+
+
+
 
     def import_track(self) -> None:
         """

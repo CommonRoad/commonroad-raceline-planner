@@ -6,7 +6,7 @@ from configparser import ConfigParser
 import json
 
 # own code base
-from base_config import BaseConfigFactory
+from commonroad_raceline_planner.configuration.base_config import BaseConfigFactory
 
 # typing
 from typing import Union
