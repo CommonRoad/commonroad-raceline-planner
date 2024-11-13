@@ -58,12 +58,8 @@ class OptimizationConfigFactory(BaseConfigFactory):
         :return: optimization config object
         """
 
-        # sanity check
-        if not self._sanity_check_ini(path_to_racecar_ini=path_to_racecar_ini):
-            raise FileNotFoundError(f'Did not find .ini file at absolute path {path_to_racecar_ini}')
-
-        # pars .init file
-        self._parser.read(path_to_racecar_ini)
+        # load config
+        self._load_ini(path_to_racecar_ini)
 
         opt_shortest_path_config: Union[OptShortestPathConfig, None] = None
         opt_min_curvature_config: Union[OptMinimumCurvatureConfig, None] = None

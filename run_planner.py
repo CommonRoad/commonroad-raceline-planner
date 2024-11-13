@@ -1,6 +1,7 @@
 import copy
 import json
 import os
+import sys
 import time
 from dataclasses import asdict
 
@@ -23,7 +24,7 @@ from commonroad_raceline_planner.util.common import progressbar as tph_progressb
 from commonroad_raceline_planner.util.visualization.result_plots import result_plots
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
 from commonroad_raceline_planner.util.validation import check_traj
-from commonroad_raceline_planner.configuration.execution_config import ExecutionConfig
+from commonroad_raceline_planner.configuration.execution_config import ExecutionConfig, ExecutionConfigFactory
 
 from commonroad_raceline_planner.configuration.general_config import setup_vehicle_parameters
 
@@ -510,6 +511,6 @@ class RaceLinePlanner:
 if __name__ == "__main__":
     config_path: Path = Path(__file__).parents[0] / "configurations/race_line_planner_config.yaml"
 
-    config = ExecutionConfig.load(config_path)
+    config: ExecutionConfig = ExecutionConfigFactory().generate_from_yml(config_path)
     planner = RaceLinePlanner(config)
     planner.run()

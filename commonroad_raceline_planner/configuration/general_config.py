@@ -79,13 +79,8 @@ class GeneralConfigFactory(BaseConfigFactory):
         :param path_to_racecar_ini: absolut path to racecar ini
         :return: general config object
         """
-
-        # sanity check
-        if not self._sanity_check_ini(path_to_racecar_ini=path_to_racecar_ini):
-            raise FileNotFoundError(f'Did not find .ini file at absolute path {path_to_racecar_ini}')
-
-        # pars .init file
-        self._parser.read(path_to_racecar_ini)
+        # load .ini file
+        self._load_ini(file_path=path_to_racecar_ini)
 
         # ggv diagram
         ggv_file_path = json.loads(

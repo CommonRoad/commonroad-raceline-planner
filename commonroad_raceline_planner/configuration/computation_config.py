@@ -38,7 +38,7 @@ class ComputationConfigFactory(BaseConfigFactory):
 
         # TODO: remove currently doubled sanity check
         # sanity check
-        if not self._sanity_check_ini(path_to_racecar_ini=path_to_racecar_ini):
+        if not self._sanity_check_ini(file_path=path_to_racecar_ini):
             raise FileNotFoundError(f'Did not find .ini file at absolute path {path_to_racecar_ini}')
 
         general_config: GeneralConfig = GeneralConfigFactory().generate_from_racecar_ini(
