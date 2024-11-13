@@ -1,11 +1,17 @@
+from typing import Union, Optional
+
 import numpy as np
 import uuid
 import hashlib
+from pathlib import Path
 
 
 
-def export_traj_race(file_paths: dict,
-                     traj_race: np.ndarray) -> None:
+def export_traj_race(
+        traj_race: np.ndarray,
+        traj_race_export: Union[str, Path],
+        ggv_file: Optional[Union[str, Path]] = None,
+) -> None:
     """
     Created by:
     Alexander Heilmeier
@@ -23,31 +29,34 @@ def export_traj_race(file_paths: dict,
     rand_uuid = str(uuid.uuid4())
 
     # hash ggv file with SHA1
-    if "ggv_file" in file_paths:
-        with open(file_paths["ggv_file"], 'br') as fh:
+    if ggv_file is not None:
+        with open(ggv_file, 'br') as fh:
             ggv_content = fh.read()
     else:
         ggv_content = np.array([])
     ggv_hash = hashlib.sha1(ggv_content).hexdigest()
 
     # write UUID and GGV hash into file
-    with open(file_paths["traj_race_export"], 'w') as fh:
+    with open(traj_race_export, 'w') as fh:
         fh.write("# " + rand_uuid + "\n")
         fh.write("# " + ggv_hash + "\n")
 
     # export race trajectory
     header = "s_m; x_m; y_m; psi_rad; kappa_radpm; vx_mps; ax_mps2"
     fmt = "%.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f"
-    with open(file_paths["traj_race_export"], 'ab') as fh:
+    with open(traj_race_export, 'ab') as fh:
         np.savetxt(fh, traj_race, fmt=fmt, header=header)
 
 
-def export_traj_ltpl(file_paths: dict,
-                     spline_lengths_opt,
-                     trajectory_opt,
-                     reftrack,
-                     normvec_normalized,
-                     alpha_opt) -> None:
+def export_traj_ltpl(
+        traj_ltpl_export: Union[str, Path],
+         spline_lengths_opt,
+         trajectory_opt,
+         reftrack,
+         normvec_normalized,
+         alpha_opt,
+         ggv_file: Optional[Union[Path, str]] = None,
+) -> None:
     """
     Created by:
     Tim Stahl
@@ -105,15 +114,15 @@ def export_traj_ltpl(file_paths: dict,
     rand_uuid = str(uuid.uuid4())
 
     # hash ggv file with SHA1
-    if "ggv_file" in file_paths:
-        with open(file_paths["ggv_file"], 'br') as fh:
+    if ggv_file is not None:
+        with open(ggv_file, 'br') as fh:
             ggv_content = fh.read()
     else:
         ggv_content = np.array([])
     ggv_hash = hashlib.sha1(ggv_content).hexdigest()
 
     # write UUID and GGV hash into file
-    with open(file_paths["traj_ltpl_export"], 'w') as fh:
+    with open(traj_ltpl_export, 'w') as fh:
         fh.write("# " + rand_uuid + "\n")
         fh.write("# " + ggv_hash + "\n")
 
@@ -121,7 +130,7 @@ def export_traj_ltpl(file_paths: dict,
     header = "x_ref_m; y_ref_m; width_right_m; width_left_m; x_normvec_m; y_normvec_m; " \
              "alpha_m; s_racetraj_m; psi_racetraj_rad; kappa_racetraj_radpm; vx_racetraj_mps; ax_racetraj_mps2"
     fmt = "%.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f"
-    with open(file_paths["traj_ltpl_export"], 'ab') as fh:
+    with open(traj_ltpl_export, 'ab') as fh:
         np.savetxt(fh, traj_ltpl, fmt=fmt, header=header)
 
 

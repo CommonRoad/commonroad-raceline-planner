@@ -4,6 +4,7 @@ import os
 import sys
 import time
 from dataclasses import asdict
+from typing import Union
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -25,6 +26,7 @@ from commonroad_raceline_planner.util.visualization.result_plots import result_p
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
 from commonroad_raceline_planner.util.validation import check_traj
 from commonroad_raceline_planner.configuration.execution_config import ExecutionConfig, ExecutionConfigFactory
+from commonroad_raceline_planner.configuration.optimization_config import OptimizationType
 
 from commonroad_raceline_planner.configuration.general_config import setup_vehicle_parameters
 
@@ -40,35 +42,31 @@ from commonroad_raceline_planner.util.track_processing import preprocess_track
 class RaceLinePlanner:
     def __init__(
             self,
-            config: ExecutionConfig
+            execution_config: ExecutionConfig
     ):
         """
         Initialize the RaceLinePlanner with a given configuration.
 
-        :param config: The configuration for the RaceLinePlanner.
+        :param execution_config: The configuration for the RaceLinePlanner.
         """
         self.pars = {}
-        self._overall_config: ComputationConfig = None
-        self.config = config
-        self.file_paths = config.file_paths
-        # Add module path to file_paths
-        self.file_paths["module"] = os.path.dirname(os.path.abspath(__file__))
-        print(os.path.dirname(os.path.abspath(__file__)))
+        self.pars_tmp = None
+        self.alpha_opt = None
+        self._computation_config: ComputationConfig = None
+        self._execution_config = execution_config
+        self._module_path: Union[str, Path] = os.path.dirname(os.path.abspath(__file__))
 
         # Ensure paths exist
-        os.makedirs(os.path.join(self.file_paths["module"], "outputs"), exist_ok=True)
+        os.makedirs(os.path.join(self._module_path, "outputs"), exist_ok=True)
 
     def setup_vehicle_parameters(self):
         """
         Set up the vehicle parameters by reading from the configuration file.
         """
-        self.pars = setup_vehicle_parameters(
-            config=self.config
-        )
-
+        print(f"loading vehicle params")
         # race_car_ini_path
-        path_to_racecar_ini=os.path.join(config.file_paths["module"], config.file_paths["veh_params_file"])
-        self._overall_config = ComputationConfigFactory().generate_from_racecar_ini(
+        path_to_racecar_ini=os.path.join(self._module_path, self._execution_config.filepath_config.veh_params_file)
+        self._computation_config = ComputationConfigFactory().generate_from_racecar_ini(
             path_to_racecar_ini=path_to_racecar_ini
         )
 
@@ -76,16 +74,17 @@ class RaceLinePlanner:
         """
         Import the track data from the specified file in the configuration.
         """
+        print(f"import race track")
         race_track_ractory = RaceTrackFactory()
 
         self.race_track = race_track_ractory.generate_racetrack_from_csv(
-            file_path=self.file_paths["track_file"],
-            vehicle_width=self.pars["veh_params"]["width"]
+            file_path=self._execution_config.filepath_config.track_file,
+            vehicle_width=self._computation_config.general_config.vehicle_config.width
         )
 
         self.race_track_cr = race_track_ractory.generate_racetrack_from_cr_scenario(
             file_path="/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/DEU_Hhr-1_1.xml",
-            vehicle_width=self.pars["veh_params"]["width"]
+            vehicle_width=self._computation_config.general_config.vehicle_config.width
         )
 
         # save start time
@@ -95,13 +94,19 @@ class RaceLinePlanner:
         """
         Import the vehicle dynamics data from the specified file in the configuration.
         """
+        # TODO: debug mintime
         # import ggv and ax_max_machines (if required)
-        if not (self.config.opt_type == 'mintime' and not self.config.mintime_opts['recalc_vel_profile_by_tph']):
+        print(f"ggv loaded")
+        if not (
+                self._execution_config.optimization_type == OptimizationType.MINIMUM_LAPTIME
+                and not self._execution_config.mintime_config.recalc_vel_profile_by_tph
+        ):
             self.ggv, self.ax_max_machines = import_veh_dyn_info(
-                ggv_import_path=self.file_paths["ggv_file"],
-                ax_max_machines_import_path=self.file_paths["ax_max_machines_file"]
+                ggv_import_path=self._execution_config.filepath_config.ggv_file,
+                ax_max_machines_import_path=self._execution_config.filepath_config.ax_max_machines_file
             )
         else:
+            print(f"no ggv loaded")
             self.ggv = None
             self.ax_max_machines = None
 
@@ -112,115 +117,46 @@ class RaceLinePlanner:
         self.reftrack_interp, self.normvec_normalized_interp, self.a_interp, self.coeffs_x_interp, self.coeffs_y_interp = \
             preprocess_track(
                 race_track=self.race_track,
-                reg_smooth_opts=self.pars["reg_smooth_opts"],
-                stepsize_opts=self.pars["stepsize_opts"],
-                debug=self.config.debug['debug'],
-                min_width=self.config.import_opts['min_track_width']
+                k_reg=self._computation_config.general_config.smoothing_config.k_reg,
+                s_reg=self._computation_config.general_config.smoothing_config.s_reg,
+                debug=self._execution_config.debug_config.debug,
+                min_width=self._execution_config.import_config.min_track_width,
+                stepsize_prep=self._computation_config.general_config.stepsize_config.stepsize_preperation,
+                stepsize_reg=self._computation_config.general_config.stepsize_config.stepsize_regression
             )
 
-    def optimize_trajectory(self):
+    def optimize_trajectory(self) -> None:
         """
         Optimize the trajectory using the shortest path optimization algorithm.(TODO: Add more algorithms)
         """
-        # if reoptimization of mintime solution is used afterwards we have to consider some additional deviation in the first
-        # optimization
-        if self.config.opt_type == 'mintime' and self.config.mintime_opts["reopt_mintime_solution"]:
-            self.w_veh_tmp = self.pars["optim_opts"]["width_opt"] + (
-                    self.pars["optim_opts"]["w_tr_reopt"] - self.pars["optim_opts"]["w_veh_reopt"])
-            self.w_veh_tmp += self.pars["optim_opts"]["w_add_spl_regr"]
-            self.pars_tmp = copy.deepcopy(self.pars)
-            self.pars_tmp["optim_opts"]["width_opt"] = self.w_veh_tmp
-        else:
-            self.pars_tmp = self.pars
+        print(f"start optimization")
 
-        # Call optimization
-        if self.config.opt_type == 'shortest_path':
+        self.pars_tmp = self.pars
+
+        # Shortest path optimization
+        if self._execution_config.optimization_type == OptimizationType.SHORTEST_PATH:
             self.alpha_opt = opt_shortest_path(
                 reftrack=self.reftrack_interp,
                 normvectors=self.normvec_normalized_interp,
-                w_veh=self.pars["optim_opts"]["width_opt"],
-                print_debug=self.config.debug['debug']
+                w_veh=self._computation_config.optimization_config.opt_shortest_path_config.vehicle_width_opt,
+                print_debug=self._execution_config.debug_config.debug
             )
-        elif self.config.opt_type == 'mincurv':
-            self.alpha_opt = opt_min_curv(
+
+        # Minimum curvature optimization
+        elif self._execution_config.optimization_type == OptimizationType.MINIMUM_CURVATURE:
+            self.alpha_opt, maximum_curvature_error = opt_min_curv(
                 reftrack=self.reftrack_interp,
                 normvectors=self.normvec_normalized_interp,
                 A=self.a_interp,
-                kappa_bound=self.pars["veh_params"]["curvlim"],
-                w_veh=self.pars["optim_opts"]["width_opt"],
-                print_debug=self.config.debug['debug'],
-                plot_debug=self.config.debug['plot_opts']["mincurv_curv_lin"]
-            )[0]
-        elif self.config.opt_type == 'mintime':
-            # reftrack_interp, a_interp and normvec_normalized_interp are returned for the case that non-regular sampling was
-            # applied
-            self.alpha_opt, self.v_opt, self.reftrack_interp, self.a_interp_tmp, self.normvec_normalized_interp = opt_mintime(reftrack=self.reftrack_interp,
-                            coeffs_x=self.coeffs_x_interp,
-                            coeffs_y=self.coeffs_y_interp,
-                            normvectors=self.normvec_normalized_interp,
-                            pars=self.pars_tmp,
-                            tpamap_path=self.config.file_paths["tpamap"],
-                            tpadata_path=self.config.file_paths["tpadata"],
-                            export_path=self.config.file_paths["mintime_export"],
-                            print_debug=self.config.debug['debug'],
-                            plot_debug=self.config.debug['plot_opts']["mintime_plots"]
-                            )
+                kappa_bound=self._computation_config.general_config.vehicle_config.curvature_limit,
+                w_veh=self._computation_config.optimization_config.opt_min_curvature_config.vehicle_width_opt,
+                print_debug=self._execution_config.debug_config.debug,
+                plot_debug=self._execution_config.debug_config.mincurv_curv_lin
+            )
+        else:
+            raise NotImplementedError(f'optimization type {self._execution_config.optimization_type} not known.')
 
-            # replace a_interp if necessary
-            if self.a_interp_tmp is not None:
-                self.a_interp = self.a_interp_tmp
-            else:
-                raise ValueError('Unknown optimization type!')
-
-        if self.config.opt_type == 'mintime' and self.config.mintime_opts["reopt_mintime_solution"]:
-
-            # get raceline solution of the time-optimal trajectory
-            self.raceline_mintime = self.reftrack_interp[:, :2] + np.expand_dims(self.alpha_opt, 1) * self.normvec_normalized_interp
-
-            # calculate new track boundaries around raceline solution depending on alpha_opt values
-            self.w_tr_right_mintime = self.reftrack_interp[:, 2] - self.alpha_opt
-            self.w_tr_left_mintime = self.reftrack_interp[:, 3] + self.alpha_opt
-
-            # create new reference track around the raceline
-            self.racetrack_mintime = np.column_stack((self.raceline_mintime, self.w_tr_right_mintime, self.w_tr_left_mintime))
-
-            # use spline approximation a second time
-            self.reftrack_interp, self.normvec_normalized_interp, self.a_interp = \
-                preprocess_track(race_track=self.racetrack_mintime,
-                                 reg_smooth_opts=self.pars["reg_smooth_opts"],
-                                 stepsize_opts=self.pars["stepsize_opts"],
-                                 debug=False,
-                                 min_width=self.config.import_opts["min_track_width"])[:3]
-
-            # set artificial track widths for reoptimization
-            self.w_tr_tmp = 0.5 * self.pars["optim_opts"]["w_tr_reopt"] * np.ones(self.reftrack_interp.shape[0])
-            self. racetrack_mintime_reopt = np.column_stack((self.reftrack_interp[:, :2], self.w_tr_tmp, self.w_tr_tmp))
-
-            # call mincurv reoptimization
-            self.alpha_opt = opt_min_curv(reftrack=self.racetrack_mintime_reopt,
-                                                      normvectors=self.normvec_normalized_interp,
-                                                      A=self.a_interp,
-                                                      kappa_bound=self.pars["veh_params"]["curvlim"],
-                                                      w_veh=self.pars["optim_opts"]["w_veh_reopt"],
-                                                      print_debug=self.config.debug['debug'],
-                                                      plot_debug=self.config.debug['plot_opts']["mincurv_curv_lin"])[0]
-
-            # calculate minimum distance from raceline to bounds and print it
-            if self.config.debug:
-                self.raceline_reopt = self.reftrack_interp[:, :2] + np.expand_dims(self.alpha_opt, 1) * self.normvec_normalized_interp
-                self.bound_r_reopt = (self.reftrack_interp[:, :2]
-                                 + np.expand_dims(self.reftrack_interp[:, 2], axis=1) * self.normvec_normalized_interp)
-                self.bound_l_reopt = (self.reftrack_interp[:, :2]
-                                 - np.expand_dims(self.reftrack_interp[:, 3], axis=1) * self.normvec_normalized_interp)
-
-                self.d_r_reopt = np.hypot(self.raceline_reopt[:, 0] - self.bound_r_reopt[:, 0],
-                                     self.raceline_reopt[:, 1] - self.bound_r_reopt[:, 1])
-                self.d_l_reopt = np.hypot(self.raceline_reopt[:, 0] - self.bound_l_reopt[:, 0],
-                                     self.raceline_reopt[:, 1] - self.bound_l_reopt[:, 1])
-
-                print("INFO: Mintime reoptimization: minimum distance to right/left bound: %.2fm / %.2fm"
-                      % (np.amin(self.d_r_reopt) - self.pars["veh_params"]["width"] / 2,
-                         np.amin(self.d_l_reopt) - self.pars["veh_params"]["width"] / 2))
+        print(f"end optimization")
 
     def interpolate_raceline(self):
         """
@@ -232,7 +168,7 @@ class RaceLinePlanner:
             refline=self.reftrack_interp[:, :2],
             normvectors=self.normvec_normalized_interp,
             alpha=self.alpha_opt,
-            stepsize_interp=self.pars["stepsize_opts"]["stepsize_interp_after_opt"]
+            stepsize_interp=self._computation_config.general_config.stepsize_config.stepsize_interp_after_opt
         )
 
     def calculate_heading_and_curvature(self):
@@ -254,14 +190,14 @@ class RaceLinePlanner:
         self.vx_profile_opt = calc_vel_profile(
             ggv=self.ggv,
             ax_max_machines=self.ax_max_machines,
-            v_max=self.pars["veh_params"]["v_max"],
+            v_max=self._computation_config.general_config.vehicle_config.v_max,
             kappa=self.kappa_opt,
             el_lengths=self.el_lengths_opt_interp,
             closed=True,
-            filt_window=self.pars["vel_calc_opts"]["vel_profile_conv_filt_window"],
-            dyn_model_exp=self.pars["vel_calc_opts"]["dyn_model_exp"],
-            drag_coeff=self.pars["veh_params"]["dragcoeff"],
-            m_veh=self.pars["veh_params"]["mass"]
+            filt_window=self._computation_config.general_config.velocity_calc_config.velocity_profile_filter,
+            dyn_model_exp=self._computation_config.general_config.velocity_calc_config.dyn_model_exp,
+            drag_coeff=self._computation_config.general_config.vehicle_config.drag_coefficient,
+            m_veh=self._computation_config.general_config.vehicle_config.mass
         )
 
         # calculate longitudinal acceleration profile
@@ -280,7 +216,7 @@ class RaceLinePlanner:
         )
         print("INFO: Estimated laptime: %.2fs" % self.t_profile_cl[-1])
 
-        if self.config.debug['plot_opts']["racetraj_vel"]:
+        if self._execution_config.debug_config.racetraj_vel:
             s_points = np.cumsum(self.el_lengths_opt_interp[:-1])
             s_points = np.insert(s_points, 0, 0.0)
 
@@ -299,16 +235,16 @@ class RaceLinePlanner:
         Calculate the lap time matrix for the raceline.
         """
         ggv_scales = np.linspace(
-            self.config.lap_time_mat_opts.gg_scale_range[0],
-            self.config.lap_time_mat_opts.gg_scale_range[1],
-            int((self.config.lap_time_mat_opts.gg_scale_range[1] - self.config.lap_time_mat_opts.gg_scale_range[0])
-                / self.config.lap_time_mat_opts.gg_scale_stepsize) + 1
+            self._execution_config.lap_time_matrix_config.gg_scale_range[0],
+            self._execution_config.lap_time_matrix_config.gg_scale_range[1],
+            int((self._execution_config.lap_time_matrix_config.gg_scale_range[1] - self._execution_config.lap_time_matrix_config.gg_scale_range[0])
+                / self._execution_config.lap_time_matrix_config.gg_scale_stepsize) + 1
         )
         top_speeds = np.linspace(
-            self.config.lap_time_mat_opts.top_speed_range[0] / 3.6,
-            self.config.lap_time_mat_opts.top_speed_range[1] / 3.6,
-            int((self.config.lap_time_mat_opts.top_speed_range[1] - self.config.lap_time_mat_opts.top_speed_range[0])
-                / self.config.lap_time_mat_opts.top_speed_stepsize) + 1
+            self._execution_config.lap_time_matrix_config.top_speed_range[0] / 3.6,
+            self._execution_config.lap_time_matrix_config.top_speed_range[1] / 3.6,
+            int((self._execution_config.lap_time_matrix_config.top_speed_range[1] - self._execution_config.lap_time_matrix_config.top_speed_range[0])
+                / self._execution_config.lap_time_matrix_config.top_speed_stepsize) + 1
         )
 
         # setup results matrix
@@ -335,11 +271,11 @@ class RaceLinePlanner:
                     v_max=top_speed,
                     kappa=self.kappa_opt,
                     el_lengths=self.el_lengths_opt_interp,
-                    dyn_model_exp=self.pars["vel_calc_opts"]["dyn_model_exp"],
-                    filt_window=self.pars["vel_calc_opts"]["vel_profile_conv_filt_window"],
+                    dyn_model_exp=self._computation_config.general_config.velocity_calc_config.dyn_model_exp,
+                    filt_window=self._computation_config.general_config.velocity_calc_config.velocity_profile_filter,
                     closed=True,
-                    drag_coeff=self.pars["veh_params"]["dragcoeff"],
-                    m_veh=self.pars["veh_params"]["mass"]
+                    drag_coeff=self._computation_config.general_config.vehicle_config.drag_coefficient,
+                    m_veh=self._computation_config.general_config.vehicle_config.mass
                 )
 
                 # calculate longitudinal acceleration profile
@@ -361,7 +297,7 @@ class RaceLinePlanner:
                 lap_time_matrix[i + 1, j + 1] = t_profile_cl[-1]
 
         # store lap time matrix to file
-        np.savetxt(self.file_paths["lap_time_mat_export"], lap_time_matrix, delimiter=",", fmt="%.3f")
+        np.savetxt(self._execution_config.filepath_config.lap_time_mat_export, lap_time_matrix, delimiter=",", fmt="%.3f")
 
     def postprocess_data(self):
         """
@@ -387,42 +323,45 @@ class RaceLinePlanner:
         """
         Check the trajectory for errors.
         """
-        self.bound1, self.bound2 = check_traj(reftrack=self.reftrack_interp,
-                       reftrack_normvec_normalized=self.normvec_normalized_interp,
-                       length_veh=self.pars["veh_params"]["length"],
-                       width_veh=self.pars["veh_params"]["width"],
-                       debug=self.config.debug['debug'],
-                       trajectory=self.trajectory_opt,
-                       ggv=self.ggv,
-                       ax_max_machines=self.ax_max_machines,
-                       v_max=self.pars["veh_params"]["v_max"],
-                       curvlim=self.pars["veh_params"]["curvlim"],
-                       mass_veh=self.pars["veh_params"]["mass"],
-                       dragcoeff=self.pars["veh_params"]["dragcoeff"])
+        self.bound1, self.bound2 = check_traj(
+              reftrack=self.reftrack_interp,
+              reftrack_normvec_normalized=self.normvec_normalized_interp,
+              length_veh=self._computation_config.general_config.vehicle_config.length,
+              width_veh=self._computation_config.general_config.vehicle_config.width,
+              debug=self._execution_config.debug_config.debug,
+              trajectory=self.trajectory_opt,
+              ggv=self.ggv,
+              ax_max_machines=self.ax_max_machines,
+              v_max=self._computation_config.general_config.vehicle_config.v_max,
+              curvlim=self._computation_config.general_config.vehicle_config.curvature_limit,
+              mass_veh=self._computation_config.general_config.vehicle_config.mass,
+              dragcoeff=self._computation_config.general_config.vehicle_config.drag_coefficient
+        )
 
     def export_trajectory(self):
         """
         Export the trajectory to the specified file in the configuration.
         """
-        # checks if files_paths is a dictionary or a dataclass and converts it to a dictionary
-        if isinstance(self.file_paths, dict):
-            files_paths_asdict = self.file_paths
-        else:
-            files_paths_asdict = asdict(self.file_paths)
 
         # export race trajectory  to CSV
-        if "traj_race_export" in files_paths_asdict.keys():
-            export_traj_race(file_paths=files_paths_asdict,
-                                                                    traj_race=self.traj_race_cl)
+        if self._execution_config.filepath_config.traj_race_export is not None:
+            export_traj_race(
+                traj_race_export=self._execution_config.filepath_config.traj_race_export,
+                ggv_file=self._execution_config.filepath_config.ggv_file,
+                traj_race=self.traj_race_cl
+            )
 
         # if requested, export trajectory including map information (via normal vectors) to CSV
-        if "traj_ltpl_export" in files_paths_asdict.keys():
-            export_traj_ltpl(files_paths_asdict,
-                                                                    spline_lengths_opt=self.spline_lengths_opt,
-                                                                    trajectory_opt=self.trajectory_opt,
-                                                                    reftrack=self.reftrack_interp,
-                                                                    normvec_normalized=self.normvec_normalized_interp,
-                                                                    alpha_opt=self.alpha_opt)
+        if self._execution_config.filepath_config.traj_ltpl_export is not None:
+            export_traj_ltpl(
+                traj_ltpl_export=self._execution_config.filepath_config.traj_ltpl_export,
+                ggv_file=self._execution_config.filepath_config.ggv_file,
+                spline_lengths_opt=self.spline_lengths_opt,
+                trajectory_opt=self.trajectory_opt,
+                reftrack=self.reftrack_interp,
+                normvec_normalized=self.normvec_normalized_interp,
+                alpha_opt=self.alpha_opt
+            )
         print("INFO: Finished export of trajectory:", time.strftime("%H:%M:%S"))
 
     def plot_results(self):
@@ -433,7 +372,7 @@ class RaceLinePlanner:
         bound1_imp = None
         bound2_imp = None
 
-        if self.config.debug['plot_opts']["imported_bounds"]:
+        if self._execution_config.debug_config.imported_bounds:
             # try to extract four times as many points as in the interpolated version (in order to hold more details)
             n_skip = max(int(self.race_track.shape[0] / (self.bound1.shape[0] * 4)), 1)
 
@@ -446,15 +385,22 @@ class RaceLinePlanner:
                                                                                       1)
 
         # plot results
-        result_plots(plot_opts=self.config.debug['plot_opts'],
-                                                        width_veh_opt=self.pars["optim_opts"]["width_opt"],
-                                                        width_veh_real=self.pars["veh_params"]["width"],
-                                                        refline=self.reftrack_interp[:, :2],
-                                                        bound1_imp=bound1_imp,
-                                                        bound2_imp=bound2_imp,
-                                                        bound1_interp=self.bound1,
-                                                        bound2_interp=self.bound2,
-                                                        trajectory=self.trajectory_opt)
+        result_plots(
+            plot_imported_bounds=self._execution_config.debug_config.imported_bounds,
+            plot_raceline=self._execution_config.debug_config.raceline,
+            plot_racetraj_vel_3d=self._execution_config.debug_config.racetraj_vel_3d,
+            plot_racline_curvature=self._execution_config.debug_config.raceline_curv,
+            plot_spline_normals=self._execution_config.debug_config.spline_normals,
+            racetraj_vel_3d_stepsize=self._execution_config.debug_config.racetraj_vel_3d_stepsize,
+            width_veh_opt=self._computation_config.optimization_config.opt_min_curvature_config.vehicle_width_opt,
+            width_veh_real=self._computation_config.general_config.vehicle_config.width,
+            refline=self.reftrack_interp[:, :2],
+            bound1_imp=bound1_imp,
+            bound2_imp=bound2_imp,
+            bound1_interp=self.bound1,
+            bound2_interp=self.bound2,
+            trajectory=self.trajectory_opt
+        )
 
         # print("First element of trajectory_opt:", self.trajectory_opt[0])
         # print("Second element of trajectory_opt:", self.trajectory_opt[1])
@@ -467,7 +413,7 @@ class RaceLinePlanner:
             'x': self.raceline_interp[:, 0].tolist(),
             'y': self.raceline_interp[:, 1].tolist()
         }
-        with open(self.file_paths["reference_path_export"], 'w') as f:
+        with open(self._execution_config.filepath_config.reference_path_export, 'w') as f:
             json.dump(reference_path, f)
         print("INFO: Finished export of reference path:", time.strftime("%H:%M:%S"))
 
@@ -479,7 +425,7 @@ class RaceLinePlanner:
             'vx': self.vx_profile_opt.tolist(),
             't': self.t_profile_cl.tolist()
         }
-        with open(self.file_paths["velocity_profile_export"], 'w') as f:
+        with open(self._execution_config.filepath_config.velocity_profile_export, 'w') as f:
             json.dump(velocity_profile, f)
         print("INFO: Finished export of velocity profile:", time.strftime("%H:%M:%S"))
 
@@ -489,22 +435,37 @@ class RaceLinePlanner:
         """
         Run the RaceLinePlanner.
         """
+        print("1")
         self.setup_vehicle_parameters()
+        print("2")
         self.import_track()
+        print("3")
         self.import_vehicle_dynamics()
+        print("4")
         self.prepare_reftrack()
+        print("5")
         self.optimize_trajectory()
+        print("6")
         self.interpolate_raceline()
+        print("7")
         self.calculate_heading_and_curvature()
+        print("8")
         self.calculate_velocity_profile()
+        print("9")
 
-        if self.config.lap_time_mat_opts['use_lap_time_mat']:
+        if self._execution_config.lap_time_matrix_config.use_lap_time_mat:
             self.calculate_lap_time_matrix()
+            print("10")
         self.postprocess_data()
+        print("11")
         self.check_trajectory()
+        print("12")
         self.export_trajectory()
+        print("13")
         self.export_reference_path()
+        print("14")
         self.export_velocity_profile()
+        print("15")
         self.plot_results()
 
 

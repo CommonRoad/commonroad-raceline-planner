@@ -27,7 +27,7 @@ class ComputationConfig:
 # - Factory
 class ComputationConfigFactory(BaseConfigFactory):
     """
-    Generates overall config from .ini file
+    Generates overall _execution_config from .ini file
     """
 
     def generate_from_racecar_ini(

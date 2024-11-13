@@ -37,13 +37,13 @@ class OptimizationConfig:
 
     def __post_init__(self):
         if self.opt_shortest_path_config is None and self.opt_min_curvature_config is None:
-            raise ValueError('No config not set')
+            raise ValueError('No _execution_config not set')
 
 
 # - Factory
 class OptimizationConfigFactory(BaseConfigFactory):
     """
-    Generates optimization config from .ini file
+    Generates optimization _execution_config from .ini file
     """
 
     def generate_from_racecar_ini(
@@ -55,10 +55,10 @@ class OptimizationConfigFactory(BaseConfigFactory):
         Generates Optimization Config from racecar ini
         :param path_to_racecar_ini: absolut path to racecar ini
         :param optimization_type: optimization type
-        :return: optimization config object
+        :return: optimization _execution_config object
         """
 
-        # load config
+        # load _execution_config
         self._load_ini(path_to_racecar_ini)
 
         opt_shortest_path_config: Union[OptShortestPathConfig, None] = None

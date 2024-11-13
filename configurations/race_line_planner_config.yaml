@@ -39,10 +39,14 @@ file_paths:
 #  track_file: "inputs/tracks/handling_track.csv"
   track_name: "lanelet_data.csv"
   track_file: "inputs/tracks/lanelet_data.csv"
+  ggv_file: "inputs/veh_dyn_info/ggv.csv"
+  ax_max_machines_file: "inputs/veh_dyn_info/ax_max_machines.csv"
   traj_race_export: "outputs/traj_race_cl.csv"
+  traj_ltpl_export: null
   lap_time_mat_export: "outputs/lap_time_matrix.csv"
   reference_path_export: "outputs/reference_path.json"
   velocity_profile_export: "outputs/velocity_profile.json"
+
 
 #  # Additional Mintime map configuration variables:
 #  mintime_export: "outputs/mintime"

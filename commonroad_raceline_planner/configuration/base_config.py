@@ -47,7 +47,7 @@ class BaseConfigFactory(ABC):
         """
         Read yml configs
         :param file_path:
-        :return: yaml config dict
+        :return: yaml _execution_config dict
         """
         # sanity check
         if not self._sanity_check_ini(file_path=file_path):

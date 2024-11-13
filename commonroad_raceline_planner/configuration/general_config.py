@@ -48,7 +48,7 @@ class VehicleConfig:
 
 
 @dataclass
-class VehicleCalcConfig:
+class VelocityCalcConfig:
     dyn_model_exp: float
     velocity_profile_filter: Union[float, None]
 
@@ -61,13 +61,13 @@ class GeneralConfig:
     smoothing_config: SmoothingConfig
     curvature_calc_config: CurvatureCalcConfig
     vehicle_config: VehicleConfig
-    vehicle_calc_config: VehicleCalcConfig
+    velocity_calc_config: VelocityCalcConfig
 
 
 # - class factory
 class GeneralConfigFactory(BaseConfigFactory):
     """
-    General config factory
+    General _execution_config factory
     """
 
     def generate_from_racecar_ini(
@@ -77,7 +77,7 @@ class GeneralConfigFactory(BaseConfigFactory):
         """
         Generates General Config from racecar ini
         :param path_to_racecar_ini: absolut path to racecar ini
-        :return: general config object
+        :return: general _execution_config object
         """
         # load .ini file
         self._load_ini(file_path=path_to_racecar_ini)
@@ -109,7 +109,7 @@ class GeneralConfigFactory(BaseConfigFactory):
             stepsize_interp_after_opt=conf["stepsize_interp_after_opt"]
         )
 
-        # smoothing config
+        # smoothing _execution_config
         conf = json.loads(
             self._parser.get(
                 section='GENERAL_OPTIONS',
@@ -121,7 +121,7 @@ class GeneralConfigFactory(BaseConfigFactory):
             s_reg=conf["s_reg"],
         )
 
-        # curvature calc config
+        # curvature calc _execution_config
         conf = json.loads(
             self._parser.get(
                 section='GENERAL_OPTIONS',
@@ -159,7 +159,7 @@ class GeneralConfigFactory(BaseConfigFactory):
                 option='vel_calc_opts'
             )
         )
-        vehicle_calc_config = VehicleCalcConfig(
+        velocity_calc_config = VelocityCalcConfig(
             dyn_model_exp=conf["dyn_model_exp"],
             velocity_profile_filter=conf["vel_profile_conv_filt_window"],
         )
@@ -171,7 +171,7 @@ class GeneralConfigFactory(BaseConfigFactory):
             smoothing_config=smoothing_config,
             curvature_calc_config=curvature_calc_config,
             vehicle_config=vehicle_config,
-            vehicle_calc_config=vehicle_calc_config
+            velocity_calc_config=velocity_calc_config
         )
 
 def setup_vehicle_parameters(config):

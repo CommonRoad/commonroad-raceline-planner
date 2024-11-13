@@ -4,19 +4,24 @@ import quadprog
 # import cvxopt
 import time
 
+# typing
+from typing import Tuple
 
-def opt_min_curv(reftrack: np.ndarray,
-                 normvectors: np.ndarray,
-                 A: np.ndarray,
-                 kappa_bound: float,
-                 w_veh: float,
-                 print_debug: bool = False,
-                 plot_debug: bool = False,
-                 closed: bool = True,
-                 psi_s: float = None,
-                 psi_e: float = None,
-                 fix_s: bool = False,
-                 fix_e: bool = False) -> tuple:
+
+def opt_min_curv(
+        reftrack: np.ndarray,
+         normvectors: np.ndarray,
+         A: np.ndarray,
+         kappa_bound: float,
+         w_veh: float,
+         print_debug: bool = False,
+         plot_debug: bool = False,
+         closed: bool = True,
+         psi_s: float = None,
+         psi_e: float = None,
+         fix_s: bool = False,
+         fix_e: bool = False
+) -> Tuple[np.ndarray, float]:
     """
     author:
     Alexander Heilmeier

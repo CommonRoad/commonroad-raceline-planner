@@ -4,10 +4,12 @@ import quadprog
 import time
 
 
-def opt_shortest_path(reftrack: np.ndarray,
-                      normvectors: np.ndarray,
-                      w_veh: float,
-                      print_debug: bool = False) -> np.ndarray:
+def opt_shortest_path(
+        reftrack: np.ndarray,
+          normvectors: np.ndarray,
+          w_veh: float,
+          print_debug: bool = False
+) -> np.ndarray:
     """
     author:
     Alexander Heilmeier

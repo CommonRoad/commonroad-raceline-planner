@@ -31,7 +31,7 @@ nav:
       - "Velocity Planner Interface": vpi.md
       - "Velocity Planning Problem": vpp.md
       - "Global Trajectory": global_trajectory.md
-      - "Configuration": config.md
+      - "Configuration": _execution_config.md
       - "Visualization": visualization.md
       - "Spline Profile": spline_profile.md
 

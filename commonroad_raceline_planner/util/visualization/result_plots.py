@@ -4,15 +4,22 @@ from mpl_toolkits.mplot3d import Axes3D
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_normal_vectors import calc_normal_vectors
 
 
-def result_plots(plot_opts: dict,
-                 width_veh_opt: float,
-                 width_veh_real: float,
-                 refline: np.ndarray,
-                 bound1_imp: np.ndarray,
-                 bound2_imp: np.ndarray,
-                 bound1_interp: np.ndarray,
-                 bound2_interp: np.ndarray,
-                 trajectory: np.ndarray) -> None:
+def result_plots(
+         plot_imported_bounds: bool,
+         plot_raceline: bool,
+         plot_racline_curvature: bool,
+         plot_racetraj_vel_3d: bool,
+         plot_spline_normals: bool,
+         racetraj_vel_3d_stepsize: float,
+         width_veh_opt: float,
+         width_veh_real: float,
+         refline: np.ndarray,
+         bound1_imp: np.ndarray,
+         bound2_imp: np.ndarray,
+         bound1_interp: np.ndarray,
+         bound2_interp: np.ndarray,
+         trajectory: np.ndarray
+) -> None:
     """
     Created by:
     Alexander Heilmeier
@@ -32,7 +39,7 @@ def result_plots(plot_opts: dict,
     trajectory:     trajectory data [s_m, x_m, y_m, psi_rad, kappa_radpm, vx_mps, ax_mps2]
     """
 
-    if plot_opts["raceline"]:
+    if plot_raceline:
         # calculate vehicle boundary points (including safety margin in vehicle width)
         normvec_normalized_opt = calc_normal_vectors(trajectory[:, 3])
 
@@ -57,7 +64,7 @@ def result_plots(plot_opts: dict,
         plt.plot(bound2_interp[:, 0], bound2_interp[:, 1], "k-", linewidth=0.7)
         plt.plot(trajectory[:, 1], trajectory[:, 2], "r-", linewidth=0.7)
 
-        if plot_opts["imported_bounds"] and bound1_imp is not None and bound2_imp is not None:
+        if plot_imported_bounds and bound1_imp is not None and bound2_imp is not None:
             plt.plot(bound1_imp[:, 0], bound1_imp[:, 1], "y-", linewidth=0.7)
             plt.plot(bound2_imp[:, 0], bound2_imp[:, 1], "y-", linewidth=0.7)
 
@@ -70,7 +77,7 @@ def result_plots(plot_opts: dict,
         plt.ylabel("north in m")
         plt.show()
 
-    if plot_opts["raceline_curv"]:
+    if plot_racline_curvature:
         # plot curvature profile
         plt.figure()
         plt.plot(trajectory[:, 0], trajectory[:, 4])
@@ -79,7 +86,7 @@ def result_plots(plot_opts: dict,
         plt.ylabel("curvature in rad/m")
         plt.show()
 
-    if plot_opts["racetraj_vel_3d"]:
+    if plot_racetraj_vel_3d:
         scale_x = 1.0
         scale_y = 1.0
         scale_z = 0.3  # scale z axis such that it does not appear stretched
@@ -107,7 +114,7 @@ def result_plots(plot_opts: dict,
         ax.set_zlabel("velocity in m/s")
 
         # plot vertical lines visualizing acceleration and deceleration zones
-        ind_stepsize = int(np.round(plot_opts["racetraj_vel_3d_stepsize"] / trajectory[1, 0] - trajectory[0, 0]))
+        ind_stepsize = int(np.round(racetraj_vel_3d_stepsize / trajectory[1, 0] - trajectory[0, 0]))
         if ind_stepsize < 1:
             ind_stepsize = 1
 
@@ -135,7 +142,7 @@ def result_plots(plot_opts: dict,
 
         plt.show()
 
-    if plot_opts["spline_normals"]:
+    if plot_spline_normals:
         plt.figure()
 
         plt.plot(refline[:, 0], refline[:, 1], 'k-')
