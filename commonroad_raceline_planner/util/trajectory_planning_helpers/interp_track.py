@@ -1,9 +1,31 @@
+import copy
+
 import numpy as np
 import math
 
+from commonroad_raceline_planner.ractetrack import RaceTrack, DtoRacetrack
 
-def interp_track(track: np.ndarray,
-                 stepsize: float) -> np.ndarray:
+
+def interp_track(
+        track: DtoRacetrack,
+        stepsize: float
+) -> DtoRacetrack:
+    """
+    close and interpolate track
+    """
+    # create closed track
+    track.close_racetrack()
+
+    # interpolate track
+    track.linear_interpol_racetrack(interpol_stepsize=stepsize)
+
+    return track
+
+
+def old_interp_track(
+        track: np.ndarray,
+        stepsize: float
+) -> np.ndarray:
     """
     author:
     Alexander Heilmeier

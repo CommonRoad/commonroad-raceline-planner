@@ -13,6 +13,7 @@ from pathlib import Path
 from commonroad_raceline_planner.configuration.computation_config import ComputationConfig, ComputationConfigFactory
 # own package
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
+from commonroad_raceline_planner.ractetrack import DtoRacetrack
 from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_veh_dyn_info
 from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
 from commonroad_raceline_planner.optimization.opt_shortest_path import opt_shortest_path
@@ -56,6 +57,8 @@ class RaceLinePlanner:
         self._execution_config = execution_config
         self._module_path: Union[str, Path] = os.path.dirname(os.path.abspath(__file__))
 
+        self.dto_race_track: DtoRacetrack = None
+
         # Ensure paths exist
         os.makedirs(os.path.join(self._module_path, "outputs"), exist_ok=True)
 
@@ -87,6 +90,8 @@ class RaceLinePlanner:
             vehicle_width=self._computation_config.general_config.vehicle_config.width
         )
 
+        self.dto_race_track = DtoRacetrack(race_track=self.race_track)
+
         # save start time
         self.t_start = time.perf_counter()
 
@@ -112,11 +117,11 @@ class RaceLinePlanner:
 
     def prepare_reftrack(self):
         """
-        Prepare the reference track by interpolating and normalizing the imported track data.
+        Prepare the track by interpolating and normalizing the imported track data.
         """
         self.reftrack_interp, self.normvec_normalized_interp, self.a_interp, self.coeffs_x_interp, self.coeffs_y_interp = \
             preprocess_track(
-                race_track=self.race_track,
+                race_track=self.dto_race_track,
                 k_reg=self._computation_config.general_config.smoothing_config.k_reg,
                 s_reg=self._computation_config.general_config.smoothing_config.s_reg,
                 debug=self._execution_config.debug_config.debug,

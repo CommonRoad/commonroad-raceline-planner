@@ -88,13 +88,13 @@ class RaceTrackFactory:
                 f"which is close to or smaller than vehicle width {vehicle_width} !"
             )
 
-        return reftrack_imp
+        # return reftrack_imp
 
         return RaceTrack(
-            x_m=reftrack_imp[1],
-            y_m=reftrack_imp[2],
-            w_tr_right_m=reftrack_imp[3],
-            w_tr_left_m=reftrack_imp[4]
+            x_m=reftrack_imp[:, 0],
+            y_m=reftrack_imp[:, 1],
+            w_tr_right_m=reftrack_imp[:, 2],
+            w_tr_left_m=reftrack_imp[:, 3]
         )
 
 
