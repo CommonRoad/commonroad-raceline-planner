@@ -1,0 +1,77 @@
+import copy
+import warnings
+import math
+import numpy as np
+
+from commonroad_raceline_planner.racetrack_layers.base_layer import BaseRacetrackLayer
+from commonroad_raceline_planner.ractetrack import DtoRacetrack
+
+
+class LinearInterpolationLayer(BaseRacetrackLayer):
+    """
+    Linearly interpolate race track.
+    """
+
+    def linear_interpolate_racetrack(
+            self,
+            dto_racetrack: DtoRacetrack,
+            interpol_stepsize: float,
+            return_new_instance: bool,
+            close_track: bool = True,
+
+    ) -> DtoRacetrack:
+        """
+        Linearly interpolate race track and return new instance
+        :param dto_racetrack: interpolated dto racetrack
+        :param return_new_instance: deepcopies input and returns new instance
+        :param interpol_stepsize: interpolation step size
+        :return: interpolated dto racetrack
+        """
+        # create new instance or modify input
+        if return_new_instance:
+            interpolate_track = copy.deepcopy(dto_racetrack)
+        else:
+            interpolate_track = dto_racetrack
+
+        # close racetrack
+        if not interpolate_track.is_closed and close_track:
+            interpolate_track.close_racetrack()
+        elif not interpolate_track.is_closed and not close_track:
+            warnings.warn("starting interpolation but race track is not closed")
+        else:
+            pass
+
+        # interpolate
+        if interpolate_track.is_interpolated:
+            warnings.warn("racetrack is already interpolated wont interpolate again")
+        else:
+            # calculate desired lenghts depending on specified stepsize (+1 because last element is included)
+            num_points: int = math.ceil(self.track_length / interpol_stepsize) + 1
+            interpoint_interpol_dist = np.linspace(
+                start=0.0,
+                stop=self.track_length,
+                num=num_points
+            )
+
+            # interpolate centerline and widths
+            interpolate_track.x_m = np.interp(interpoint_interpol_dist, interpolate_track.track_length, interpolate_track.x_m)
+            interpolate_track.y_m = np.interp(interpoint_interpol_dist, interpolate_track.track_length, interpolate_track.y_m)
+            interpolate_track.w_tr_left_m = np.interp(interpoint_interpol_dist, interpolate_track.track_length, interpolate_track.w_tr_left_m)
+            interpolate_track.w_tr_right_m = np.interp(interpoint_interpol_dist, interpolate_track.track_length, interpolate_track.w_tr_right_m)
+
+            # recalc other members
+            interpolate_track.num_points = interpolate_track.x_m.shape[0]
+            interpolate_track.interpoint_length = np.linalg.norm(np.hstack(interpolate_track.x_m, interpolate_track.y_m), ord=2, axis=1)
+            interpolate_track.track_length_per_point = np.cumsum(interpolate_track.interpoint_length)
+            if (interpolate_track.track_length_per_point[0] != 0.0):
+                interpolate_track.track_length_per_point = np.insert(interpolate_track.track_length_per_point, 0, 0.0)
+            interpolate_track.track_length_per_point = np.insert(interpolate_track.track_length_per_point, 0, 0.0)
+            interpolate_track.track_length = interpolate_track.track_length_per_point[-1]
+
+            # set flags
+            interpolate_track.is_interpolated = True
+            # interpolating also reopens race track, so close it again
+            interpolate_track.is_closed = False
+            interpolate_track.close_racetrack()
+
+        return interpolate_track

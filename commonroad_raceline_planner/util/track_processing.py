@@ -3,11 +3,14 @@ import sys
 import matplotlib.pyplot as plt
 import math
 
+from commonroad_raceline_planner.racetrack_layers.width_inflation_layer import WidthInflationLayer
 # CommonRoad
-from commonroad_raceline_planner.ractetrack import RaceTrack, DtoRacetrack
+from commonroad_raceline_planner.ractetrack import RaceTrack, DtoRacetrack, DtoRacetrackFactory
 from commonroad_raceline_planner.smoothing.spline_approximation import spline_approximation
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
 from commonroad_raceline_planner.util.trajectory_planning_helpers.check_normals_crossing import check_normals_crossing
+from commonroad_raceline_planner.racetrack_layers.lin_interpol_layer import LinearInterpolationLayer
+from commonroad_raceline_planner.racetrack_layers.spline_approx_layer import SplineApproxLayer
 
 
 def preprocess_track(
@@ -40,15 +43,28 @@ def preprocess_track(
     # INTERPOLATE REFTRACK AND CALCULATE INITIAL SPLINES ---------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
-    # smoothing and interpolating reference track
-    reftrack_interp = spline_approximation(
-        track=race_track,
-           k_reg=k_reg,
-           s_reg=s_reg,
-           stepsize_prep=stepsize_prep,
-           stepsize_reg=stepsize_reg,
-           debug=debug
+    # close race track if not already done
+    race_track.close_racetrack()
+
+    # liner interpolation
+    interpolated_track: DtoRacetrack = LinearInterpolationLayer().linear_interpolate_racetrack(
+        dto_racetrack=race_track,
+        interpol_stepsize=stepsize_prep,
+        return_new_instance=True
     )
+
+    spline_track: DtoRacetrack = SplineApproxLayer().spline_approximation(
+        dto_racetrack=race_track,
+        dto_racetrack_interpolated=interpolated_track,
+        k_reg=k_reg,
+        s_reg=s_reg,
+        stepsize_reg=stepsize_reg,
+        debug=debug
+    )
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # CALCULATE INITIAL SPLINES ---------------------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
 
     # calculate splines
     refpath_interp_cl = np.vstack((reftrack_interp[:, :2], reftrack_interp[0, :2]))
@@ -89,22 +105,14 @@ def preprocess_track(
     # ENFORCE MINIMUM TRACK WIDTH (INFLATE TIGHTER SECTIONS UNTIL REACHED) ---------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
-    manipulated_track_width = False
-
     if min_width is not None:
-        for i in range(reftrack_interp.shape[0]):
-            cur_width = reftrack_interp[i, 2] + reftrack_interp[i, 3]
-
-            if cur_width < min_width:
-                manipulated_track_width = True
-
-                # inflate to both sides equally
-                reftrack_interp[i, 2] += (min_width - cur_width) / 2
-                reftrack_interp[i, 3] += (min_width - cur_width) / 2
-
-    if manipulated_track_width:
-        print("WARNING: Track region was smaller than requested minimum track width -> Applied artificial inflation in"
-              " order to match the requirements!", file=sys.stderr)
+        inflated_track: DtoRacetrack = WidthInflationLayer().inflate_width(
+            dto_racetrack=spline_track,
+            mininmum_track_width=min_width,
+            return_new_instance=False
+        )
+    else:
+        inlated_track: DtoRacetrack = spline_track
 
     return reftrack_interp, normvec_normalized_interp, a_interp, coeffs_x_interp, coeffs_y_interp
 

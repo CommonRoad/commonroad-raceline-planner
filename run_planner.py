@@ -13,7 +13,7 @@ from pathlib import Path
 from commonroad_raceline_planner.configuration.computation_config import ComputationConfig, ComputationConfigFactory
 # own package
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
-from commonroad_raceline_planner.ractetrack import DtoRacetrack
+from commonroad_raceline_planner.ractetrack import DtoRacetrack, DtoRacetrackFactory
 from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_veh_dyn_info
 from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
 from commonroad_raceline_planner.optimization.opt_shortest_path import opt_shortest_path
@@ -78,19 +78,18 @@ class RaceLinePlanner:
         Import the track data from the specified file in the configuration.
         """
         print(f"import race track")
-        race_track_ractory = RaceTrackFactory()
 
-        self.race_track = race_track_ractory.generate_racetrack_from_csv(
+        self.race_track = RaceTrackFactory().generate_racetrack_from_csv(
             file_path=self._execution_config.filepath_config.track_file,
             vehicle_width=self._computation_config.general_config.vehicle_config.width
         )
 
-        self.race_track_cr = race_track_ractory.generate_racetrack_from_cr_scenario(
+        self.race_track_cr = RaceTrackFactory().generate_racetrack_from_cr_scenario(
             file_path="/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/DEU_Hhr-1_1.xml",
             vehicle_width=self._computation_config.general_config.vehicle_config.width
         )
 
-        self.dto_race_track = DtoRacetrack(race_track=self.race_track)
+        self.dto_race_track = DtoRacetrackFactory().generate_from_racetrack(race_track=self.race_track)
 
         # save start time
         self.t_start = time.perf_counter()
