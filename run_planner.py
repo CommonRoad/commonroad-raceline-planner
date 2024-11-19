@@ -156,6 +156,7 @@ class RaceLinePlanner:
         """
         Interpolate the raceline using the optimized trajectory.
         """
+        self.spline_track.open_racetrack()
         self.raceline_interp, self.a_opt, self.coeffs_x_opt, self.coeffs_y_opt, \
             self.spline_inds_opt_interp, self.t_vals_opt_interp, self.s_points_opt_interp, \
             self.spline_lengths_opt, self.el_lengths_opt_interp = create_raceline(
@@ -164,6 +165,7 @@ class RaceLinePlanner:
             alpha=self.alpha_opt,
             stepsize_interp=self._computation_config.general_config.stepsize_config.stepsize_interp_after_opt
         )
+        self.spline_track.close_racetrack()
 
     def calculate_heading_and_curvature(self):
         """
@@ -317,6 +319,7 @@ class RaceLinePlanner:
         """
         Check the trajectory for errors.
         """
+        self.spline_track.open_racetrack()
         self.bound1, self.bound2 = check_traj(
               reftrack=self.spline_track,
               reftrack_normvec_normalized=self.normvec_normalized_interp,
@@ -331,6 +334,7 @@ class RaceLinePlanner:
               mass_veh=self._computation_config.general_config.vehicle_config.mass,
               dragcoeff=self._computation_config.general_config.vehicle_config.drag_coefficient
         )
+        self.spline_track.close_racetrack()
 
     def export_trajectory(self):
         """
@@ -368,15 +372,22 @@ class RaceLinePlanner:
 
         if self._execution_config.debug_config.imported_bounds:
             # try to extract four times as many points as in the interpolated version (in order to hold more details)
-            n_skip = max(int(self.race_track.shape[0] / (self.bound1.shape[0] * 4)), 1)
+            n_skip = max(int(self.race_track.num_points / (self.bound1.shape[0] * 4)), 1)
 
-            _, _, _, normvec_imp = calc_splines(path=np.vstack((self.race_track[::n_skip, 0:2],
-                                                                self.race_track[0, 0:2])))
+            _, _, _, normvec_imp = calc_splines(
+                path=np.vstack(
+                    (self.race_track.to_2d_np_array()[::n_skip], self.race_track.to_2d_np_array()[0])
+                )
+            )
 
-            bound1_imp = self.race_track[::n_skip, :2] + normvec_imp * np.expand_dims(self.race_track[::n_skip, 2],
-                                                                                      1)
-            bound2_imp = self.race_track[::n_skip, :2] - normvec_imp * np.expand_dims(self.race_track[::n_skip, 3],
-                                                                                      1)
+            bound1_imp = self.race_track.w_tr_right_m[::n_skip] + normvec_imp * np.expand_dims(
+                self.race_track.w_tr_right_m[::n_skip],
+                axis=1
+            )
+            bound2_imp = self.race_track.w_tr_right_m[::n_skip] - normvec_imp * np.expand_dims(
+                self.race_track.w_tr_left_m[::n_skip],
+                axis=1
+            )
 
         # plot results
         result_plots(
@@ -388,7 +399,7 @@ class RaceLinePlanner:
             racetraj_vel_3d_stepsize=self._execution_config.debug_config.racetraj_vel_3d_stepsize,
             width_veh_opt=self._computation_config.optimization_config.opt_min_curvature_config.vehicle_width_opt,
             width_veh_real=self._computation_config.general_config.vehicle_config.width,
-            refline=self.spline_track[:, :2],
+            refline=self.spline_track.to_2d_np_array(),
             bound1_imp=bound1_imp,
             bound2_imp=bound2_imp,
             bound1_interp=self.bound1,

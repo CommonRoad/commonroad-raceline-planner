@@ -1,17 +1,10 @@
 import copy
 from dataclasses import dataclass
-import warnings
 import numpy as np
-import math
-
-from numpy.lib.shape_base import expand_dims
-from shapely.predicates import is_closed
-from yaml import warnings
-
+import warnings
 # commonroad
 from commonroad_raceline_planner.util.exceptions import (
     TrackDataInvalidException,
-    TrackNotClosedException
 )
 
 

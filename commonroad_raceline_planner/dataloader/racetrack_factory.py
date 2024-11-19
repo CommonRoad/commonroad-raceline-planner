@@ -125,10 +125,6 @@ class RaceTrackFactory:
         lanelets = RaceTrackFactory.sort_lanelets_by_id(lanelet_network)
 
         for lanelet in lanelets:
-            if lanelet.predecessor and lanelet.successor:
-                lanelet_id_str = str(lanelet.lanelet_id)
-                print("lanelet" + lanelet_id_str + "has pred and suc")
-
             for center_point in lanelet.center_vertices:
                 left_distances = [np.linalg.norm(center_point - left_point) for left_point in lanelet.left_vertices]
                 min_left_distance = min(left_distances)
@@ -156,12 +152,6 @@ class RaceTrackFactory:
                 last_point = point
             else:
                 deleted_points.append((i, point))
-
-        # Print deleted points
-        if len(deleted_points) > 0:
-            print("The following points were deleted because they were too close to the previous point:")
-            for index, point in deleted_points:
-                print(f"Index: {index}, Point: {point}")
 
 
         npoints = np.asarray([points[0]['x_m'], points[0]['y_m'], points[0]['w_tr_right_m'], points[0]['w_tr_left_m']])

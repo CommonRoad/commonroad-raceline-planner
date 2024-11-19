@@ -123,7 +123,7 @@ class SplineApproxLayer(BaseRacetrackLayer):
 
         sides_cl = np.hstack((sides, sides[0]))
 
-        ## --- calculate new race track sdies
+        ## --- calculate new race track sides
         # calculate new track widths on the basis of the new reference line, but not interpolated to new stepsize yet
         w_tr_right_new_cl = original_track.w_tr_right_m + sides_cl * dists_cl
         w_tr_left_new_cl = original_track.w_tr_left_m - sides_cl * dists_cl
@@ -135,7 +135,7 @@ class SplineApproxLayer(BaseRacetrackLayer):
 
         track_reg = np.column_stack((path_smoothed, w_tr_right_smoothed_cl[:-1], w_tr_left_smoothed_cl[:-1]))
 
-        spline_track =  DtoRacetrackFactory().generate_from_centerline_and_bounds(
+        spline_track = DtoRacetrackFactory().generate_from_centerline_and_bounds(
             race_track=original_track.original_track,
             x_m=track_reg[:, 0],
             y_m=track_reg[:, 1],

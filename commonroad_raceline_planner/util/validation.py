@@ -1,5 +1,6 @@
 import numpy as np
 
+from commonroad_raceline_planner.ractetrack import DtoRacetrack
 # Own code base
 from commonroad_raceline_planner.util.track_processing import (
     interp_track,
@@ -7,7 +8,7 @@ from commonroad_raceline_planner.util.track_processing import (
 )
 
 
-def check_traj(reftrack: np.ndarray,
+def check_traj(reftrack: DtoRacetrack,
                reftrack_normvec_normalized: np.ndarray,
                trajectory: np.ndarray,
                ggv: np.ndarray,
@@ -52,24 +53,37 @@ def check_traj(reftrack: np.ndarray,
     # ------------------------------------------------------------------------------------------------------------------
 
     # calculate boundaries and interpolate them to small stepsizes (currently linear interpolation)
-    bound_r = reftrack[:, :2] + reftrack_normvec_normalized * np.expand_dims(reftrack[:, 2], 1)
-    bound_l = reftrack[:, :2] - reftrack_normvec_normalized * np.expand_dims(reftrack[:, 3], 1)
+    bound_r = reftrack.to_2d_np_array() + reftrack_normvec_normalized * np.expand_dims(
+        reftrack.w_tr_right_m,
+        axis=1
+    )
+    bound_l = reftrack.to_2d_np_array() - reftrack_normvec_normalized * np.expand_dims(
+        reftrack.w_tr_left_m,
+        axis=1
+    )
 
+    # TODO: they are reusing an interpolation function for other dim here -> do own function
     # check boundaries for vehicle edges
     bound_r_tmp = np.column_stack((bound_r, np.zeros((bound_r.shape[0], 2))))
     bound_l_tmp = np.column_stack((bound_l, np.zeros((bound_l.shape[0], 2))))
 
-    bound_r_interp = interp_track(reftrack=bound_r_tmp,
-                                                                     stepsize_approx=1.0)[0]
-    bound_l_interp = interp_track(reftrack=bound_l_tmp,
-                                                                     stepsize_approx=1.0)[0]
+    bound_r_interp = interp_track(
+        reftrack=bound_r_tmp,
+        stepsize_approx=1.0
+    )[0]
+    bound_l_interp = interp_track(
+        reftrack=bound_l_tmp,
+        stepsize_approx=1.0
+    )[0]
 
     # calculate minimum distances of every trajectory point to the boundaries
-    min_dists = calc_min_bound_dists(trajectory=trajectory,
-                                                                                bound1=bound_r_interp,
-                                                                                bound2=bound_l_interp,
-                                                                                length_veh=length_veh,
-                                                                                width_veh=width_veh)
+    min_dists = calc_min_bound_dists(
+        trajectory=trajectory,
+        bound1=bound_r_interp,
+        bound2=bound_l_interp,
+        length_veh=length_veh,
+        width_veh=width_veh
+    )
 
     # calculate overall minimum distance
     min_dist = np.amin(min_dists)
