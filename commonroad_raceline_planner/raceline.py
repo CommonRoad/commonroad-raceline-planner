@@ -8,21 +8,6 @@ from typing import Union
 
 
 @dataclass
-class DtoRacing:
-    """
-    Data transfer object resembling an actual raceline.
-    """
-    points: Union[np.ndarray, None] = None
-    length_per_point: Union[np.ndarray, None] = None
-    velocity_long_per_point: Union[np.ndarray, None] = None
-    acceleration_long_per_point: Union[np.ndarray, None] = None
-    curvature_per_point: Union[np.ndarray, None] = None
-    heading_per_point: Union[np.ndarray, None] = None
-    num_points: Union[int, None] = None
-    sanity: Union[bool, None] = None
-
-
-@dataclass
 class RaceLine:
     """
     Raceline
@@ -35,6 +20,7 @@ class RaceLine:
     heading_per_point: np.ndarray
     num_points: Union[int, None] = None
     sanity: Union[bool, None] = None
+    closed: bool = False
 
     def __post_init__(self):
         self.num_points = self.points.shape[0]
@@ -62,6 +48,20 @@ class RaceLine:
 
         return sanity
 
+    def close_raceline(self) -> None:
+        """
+        Close raceline
+        """
+        # TODO: implement
+        self.points = np.hstack((self.points, self.points[0]))
+        self.length_per_point = np.hstack((self.length_per_point, self.length_per_point[0]))
+        self.velocity_long_per_point = np.hstack((self.velocity_long_per_point, self.velocity_long_per_point[0]))
+        self.acceleration_long_per_point = np.hstack((self.acceleration_long_per_point, self.acceleration_long_per_point[0]))
+        self.curvature_per_point = np.hstack((self.curvature_per_point, self.curvature_per_point[0]))
+        self.heading_per_point = np.hstack((self.curvature_per_point, self.curvature_per_point[0]))
+        self.num_points = self.points.shape[0]
+        self.sanity = self.sanity_check()
+
 
 class RaceLineFactory:
     """
@@ -76,6 +76,7 @@ class RaceLineFactory:
         acceleration_long_per_point: np.ndarray,
         curvature_per_point: np.ndarray,
         heading_per_point: np.ndarray,
+        closed: bool
     ) -> RaceLine:
         """
         Generates race line
@@ -93,7 +94,8 @@ class RaceLineFactory:
             velocity_long_per_point=velocity_long_per_point,
             acceleration_long_per_point=acceleration_long_per_point,
             curvature_per_point=curvature_per_point,
-            heading_per_point=heading_per_point
+            heading_per_point=heading_per_point,
+            closed=closed
         )
 
 

@@ -308,6 +308,7 @@ class RaceLinePlanner:
                                                self.ax_profile_opt))
         spline_data_opt = np.column_stack((self.spline_lengths_opt, self.coeffs_x_opt, self.coeffs_y_opt))
 
+        # TODO: ???
         # create a closed race trajectory array
         self.traj_race_cl = np.vstack((self.trajectory_opt, self.trajectory_opt[0, :]))
         self.traj_race_cl[-1, 0] = np.sum(spline_data_opt[:, 0])  # set correct length
