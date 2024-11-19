@@ -49,6 +49,8 @@ def create_raceline(refline: np.ndarray,
     :rtype el_lengths_raceline_interp_cl:   np.ndarray
     """
 
+    # TODO: here we need an open race track again
+
     # calculate raceline on the basis of the optimized alpha values
     raceline = refline + np.expand_dims(alpha, 1) * normvectors
 

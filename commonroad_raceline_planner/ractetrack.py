@@ -4,6 +4,7 @@ import warnings
 import numpy as np
 import math
 
+from numpy.lib.shape_base import expand_dims
 from shapely.predicates import is_closed
 from yaml import warnings
 
@@ -190,8 +191,12 @@ class DtoRacetrack:
         Convert to 4d numpy array
         :return: np.ndarray[x_m, y_m, w_tr_right_m, w_tr_left_m] -> dim = (num_points, 4)
         """
-        return np.vstack(
-            (self.x_m, self.y_m, self.w_tr_right_m, self.w_tr_left_m)
+        return np.swapaxes(
+            np.vstack(
+                (self.x_m, self.y_m, self.w_tr_right_m, self.w_tr_left_m)
+            ),
+            axis1=1,
+            axis2=0
         )
 
     def to_2d_np_array(self) -> np.ndarray:
@@ -199,9 +204,13 @@ class DtoRacetrack:
         Convert to 2d numpy array
         :return: np.ndarray[x_m,y_m] -> dim = (num_points, 2)
         """
-        return np.vstack(
-            (self.x_m, self.y_m)
-        )
+        return np.swapaxes(
+                    np.vstack(
+                        (self.x_m, self.y_m)
+                    ),
+                    axis1=1,
+                    axis2=0
+                )
 
 
 

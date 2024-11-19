@@ -68,7 +68,7 @@ def preprocess_track(
     )
 
     # compute normals
-    coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp = compute_normals_and_check_crosinng(
+    coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp = compute_normals_and_check_crosing(
         race_track=spline_track,
         normal_crossing_horizon=normal_crossing_horizon
     )
@@ -88,7 +88,7 @@ def preprocess_track(
 
 
 
-def compute_normals_and_check_crosinng(
+def compute_normals_and_check_crosing(
         race_track: DtoRacetrack,
         normal_crossing_horizon: int = 10
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -104,6 +104,7 @@ def compute_normals_and_check_crosinng(
     )
 
     # TODO: may have to remove last point if closed?
+    race_track.open_racetrack()
     normals_crossing = check_normals_crossing(
         track=race_track.to_4d_np_array(),
         normvec_normalized=normvec_normalized_interp,

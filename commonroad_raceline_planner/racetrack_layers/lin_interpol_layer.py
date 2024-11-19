@@ -71,8 +71,5 @@ class LinearInterpolationLayer(BaseRacetrackLayer):
 
             # set flags
             interpolate_track.is_interpolated = True
-            # interpolating also reopens race track, so close it again
-            interpolate_track.is_closed = False
-            interpolate_track.close_racetrack()
 
         return interpolate_track

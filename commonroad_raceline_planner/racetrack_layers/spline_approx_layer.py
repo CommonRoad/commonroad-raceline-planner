@@ -135,16 +135,19 @@ class SplineApproxLayer(BaseRacetrackLayer):
 
         track_reg = np.column_stack((path_smoothed, w_tr_right_smoothed_cl[:-1], w_tr_left_smoothed_cl[:-1]))
 
-        return DtoRacetrackFactory().generate_from_centerline_and_bounds(
+        spline_track =  DtoRacetrackFactory().generate_from_centerline_and_bounds(
             race_track=original_track.original_track,
             x_m=track_reg[:, 0],
             y_m=track_reg[:, 1],
             w_tr_right_m=track_reg[:, 2],
             w_tr_left_m=track_reg[:, 3],
-            is_closed=True,
+            is_closed=False,
             is_interpolated=True,
             is_spline_approximated=True
         )
+
+        spline_track.close_racetrack()
+        return spline_track
 
 
     @staticmethod
