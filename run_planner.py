@@ -81,7 +81,7 @@ class RaceLinePlanner:
         )
 
         self.race_track_cr = RaceTrackFactory().generate_racetrack_from_cr_scenario(
-            file_path="/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/DEU_Hhr-1_1.xml",
+            file_path="/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/ZAM_realrounded-1_1_T-1.xml",
             vehicle_width=self._computation_config.general_config.vehicle_config.width
         )
         self.dto_race_track = DtoRacetrackFactory().generate_from_racetrack(race_track=self.race_track)

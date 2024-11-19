@@ -109,7 +109,7 @@ class RaceTrackFactory:
             new_start: Optional[np.ndarray] = None,
             removing_distance: float = 0.5,
             vehicle_safe_margin_m: float = 0.5
-    ) -> np.ndarray:
+    ) -> RaceTrack:
         """
             Load racetrack from cr scenario
 
@@ -178,7 +178,14 @@ class RaceTrackFactory:
             warnings.warn(
                 f"WARNING: Minimum track width {np.amin(w_tr_min)} is close to or smaller than vehicle width!"
             )
-        return npoints
+
+        return RaceTrack(
+            x_m=npoints[:, 0],
+            y_m=npoints[:, 1],
+            w_tr_right_m=npoints[:, 2],
+            w_tr_left_m=npoints[:, 3],
+            cr_scenario=scenario
+        )
 
 
 

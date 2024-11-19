@@ -4,6 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_normal_vectors import calc_normal_vectors
 
 
+
 def result_plots(
          plot_imported_bounds: bool,
          plot_raceline: bool,
