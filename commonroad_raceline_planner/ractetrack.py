@@ -37,7 +37,10 @@ class RaceTrack:
 
     def __post_init__(self):
         self.num_points = self.x_m.shape[0]
-        self.interpoint_length = np.linalg.norm(np.hstack(self.x_m, self.y_m), ord=2, axis=1)
+        self.interpoint_length = calc_interpoint_length(
+            x_m=self.x_m,
+            y_m=self.y_m
+        )
         self.track_length_per_point = np.cumsum(self.interpoint_length)
         self.track_length_per_point = np.insert(self.track_length_per_point, 0, 0.0)
         self.track_length = self.track_length_per_point[-1]
@@ -60,6 +63,24 @@ class RaceTrack:
                 f"x_m={self.x_m.shape[0]}, y_m={self.y_m.shape[0]}, w_tr_left_m={self.w_tr_left_m.shape[0]}, w_tr_right_m={self.w_tr_right_m.shape[0]}"
             )
 
+
+    def to_4d_np_array(self) -> np.ndarray:
+        """
+        Convert to 4d numpy array
+        :return: np.ndarray[x_m, y_m, w_tr_right_m, w_tr_left_m] -> dim = (num_points, 4)
+        """
+        return np.vstack(
+            (self.x_m, self.y_m, self.w_tr_right_m, self.w_tr_left_m)
+        )
+
+    def to_2d_np_array(self) -> np.ndarray:
+        """
+        Convert to 2d numpy array
+        :return: np.ndarray[x_m,y_m] -> dim = (num_points, 2)
+        """
+        return np.vstack(
+            (self.x_m, self.y_m)
+        )
 
 
 
@@ -130,12 +151,16 @@ class DtoRacetrack:
         if self.is_closed and not forced_recalc:
             warnings.warn("Racetrack already closed, wont close it twice")
         else:
-            self.x_m = np.hstack(self.x_m, self.x_m[0])
-            self.y_m = np.hstack(self.y_m, self.y_m[0])
-            self.w_tr_right_m = np.hstack(self.w_tr_right_m, self.w_tr_right_m[0])
-            self.w_tr_left_m = np.hstack(self.w_tr_left_m, self.w_tr_left_m[0])
+            # add first point to end and 0.0 at first race-track length
+            self.x_m = np.hstack((self.x_m, self.x_m[0]))
+            self.y_m = np.hstack((self.y_m, self.y_m[0]))
+            self.w_tr_right_m = np.hstack((self.w_tr_right_m, self.w_tr_right_m[0]))
+            self.w_tr_left_m = np.hstack((self.w_tr_left_m, self.w_tr_left_m[0]))
             self.num_points = self.x_m.shape[0]
-            self.interpoint_length = np.linalg.norm(np.hstack(self.x_m, self.y_m), ord=2, axis=1)
+            self.interpoint_length = calc_interpoint_length(
+                x_m=self.x_m,
+                y_m=self.y_m
+            )
             self.track_length_per_point = np.cumsum(self.interpoint_length)
             if (self.track_length_per_point[0] != 0.0):
                 self.track_length_per_point = np.insert(self.track_length_per_point, 0, 0.0)
@@ -159,6 +184,24 @@ class DtoRacetrack:
             self.track_length_per_point = self.track_length_per_point[:-1]
             self.track_length = self.track_length_per_point[-1]
             self.is_closed = False
+
+    def to_4d_np_array(self) -> np.ndarray:
+        """
+        Convert to 4d numpy array
+        :return: np.ndarray[x_m, y_m, w_tr_right_m, w_tr_left_m] -> dim = (num_points, 4)
+        """
+        return np.vstack(
+            (self.x_m, self.y_m, self.w_tr_right_m, self.w_tr_left_m)
+        )
+
+    def to_2d_np_array(self) -> np.ndarray:
+        """
+        Convert to 2d numpy array
+        :return: np.ndarray[x_m,y_m] -> dim = (num_points, 2)
+        """
+        return np.vstack(
+            (self.x_m, self.y_m)
+        )
 
 
 
@@ -195,7 +238,6 @@ class DtoRacetrackFactory:
             is_spline_approximated=is_spline_approximated,
             perform_sanity_check=True
         )
-
 
     def generate_from_constructor_values(
             self,
@@ -256,7 +298,10 @@ class DtoRacetrackFactory:
         :return:
         """
         num_points = x_m.shape[0]
-        interpoint_length = np.linalg.norm(np.hstack(x_m, y_m), ord=2, axis=1)
+        interpoint_length = calc_interpoint_length(
+            x_m=x_m,
+            y_m=y_m
+        )
         track_length_per_point = np.cumsum(interpoint_length)
         track_length_per_point = np.insert(track_length_per_point, 0, 0.0)
         track_length = track_length_per_point[-1]
@@ -276,3 +321,37 @@ class DtoRacetrackFactory:
             is_spline_approximated=is_spline_approximated,
             perform_sanity_check=True
         )
+
+
+def calc_interpoint_length(
+        x_m: np.ndarray,
+        y_m: np.ndarray
+) -> np.ndarray:
+    """
+    Calc interpoint length
+    :param x_m: x coordinate
+    :param y_m: y coordinate
+    :return: array of interpoint lengths
+    """
+    differences = np.diff(np.vstack((x_m, y_m)), axis=1)
+    squared_differences = np.power(differences, 2)
+    summed_squared_differences = np.sum(squared_differences, axis=0)
+    root_ssd = np.sqrt(summed_squared_differences)
+    return root_ssd
+
+
+if __name__ == "__main__":
+
+    x_m = np.asarray([2.0974, -9.6235, -19.2631])
+    y_m = np.asarray([-4.01, 20.41, 40.63])
+    d = np.diff(np.vstack((x_m, y_m)), axis=1)
+    print(f"diff={d}")
+    p2 = np.power(d, 2)
+    print(f"power={p2}")
+    s = np.sum(p2, axis=0)
+    print(f"sum={s}")
+    sq = np.sqrt(s)
+    print(f"sq={sq}")
+    track_length = np.cumsum(sq)
+    print(track_length)
+

@@ -13,6 +13,10 @@ from commonroad_raceline_planner.racetrack_layers.lin_interpol_layer import Line
 from commonroad_raceline_planner.racetrack_layers.spline_approx_layer import SplineApproxLayer
 
 
+# typing
+from typing import Tuple
+
+
 def preprocess_track(
         race_track: DtoRacetrack,
         k_reg: int,
@@ -20,7 +24,8 @@ def preprocess_track(
         stepsize_prep: float,
         stepsize_reg: float,
         debug: bool = True,
-        min_width: float = None
+        min_width: float = None,
+        normal_crossing_horizon: int = 10
 ) -> tuple:
     """
 
@@ -62,30 +67,58 @@ def preprocess_track(
         debug=debug
     )
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # CALCULATE INITIAL SPLINES ---------------------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
+    # compute normals
+    coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp = compute_normals_and_check_crosinng(
+        race_track=spline_track,
+        normal_crossing_horizon=normal_crossing_horizon
+    )
 
-    # calculate splines
-    refpath_interp_cl = np.vstack((reftrack_interp[:, :2], reftrack_interp[0, :2]))
+    # inflate track
+    if min_width is not None:
+        inflated_track: DtoRacetrack = WidthInflationLayer().inflate_width(
+            dto_racetrack=spline_track,
+            mininmum_track_width=min_width,
+            return_new_instance=False
+        )
+    else:
+        inflated_track: DtoRacetrack = spline_track
 
-    coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp = calc_splines(path=refpath_interp_cl)
+    return inflated_track, normvec_normalized_interp, a_interp, coeffs_x_interp, coeffs_y_interp
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # CHECK SPLINE NORMALS FOR CROSSING POINTS -------------------------------------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
 
-    normals_crossing = check_normals_crossing(track=reftrack_interp,
-                                                        normvec_normalized=normvec_normalized_interp,
-                                                         horizon=10)
+
+
+def compute_normals_and_check_crosinng(
+        race_track: DtoRacetrack,
+        normal_crossing_horizon: int = 10
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Checks if normals crossing. Assumes a spline interpolation to be done first!
+    :param race_track: dto racetrack object
+    :return: Tuple[x_spline_coeff, y_spline_coeff, linear_system_matrix, normalized_normal_vectors]
+    :raise: IOError if splines are crossing
+    """
+    # Check if normals are crossing
+    coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp = calc_splines(
+        path=race_track.to_2d_np_array()
+    )
+
+    # TODO: may have to remove last point if closed?
+    normals_crossing = check_normals_crossing(
+        track=race_track.to_4d_np_array(),
+        normvec_normalized=normvec_normalized_interp,
+        horizon=normal_crossing_horizon
+    )
 
     if normals_crossing:
-        bound_1_tmp = reftrack_interp[:, :2] + normvec_normalized_interp * np.expand_dims(reftrack_interp[:, 2], axis=1)
-        bound_2_tmp = reftrack_interp[:, :2] - normvec_normalized_interp * np.expand_dims(reftrack_interp[:, 3], axis=1)
+        bound_1_tmp = (race_track.to_2d_np_array()
+                       + normvec_normalized_interp * np.expand_dims(race_track.to_2d_np_array(), axis=1))
+        bound_2_tmp = (race_track.to_2d_np_array()
+                       - normvec_normalized_interp * np.expand_dims(race_track.to_2d_np_array() , axis=1))
 
         plt.figure()
 
-        plt.plot(reftrack_interp[:, 0], reftrack_interp[:, 1], 'k-')
+        plt.plot(race_track.w_tr_right_m, race_track.w_tr_left_m, 'k-')
         for i in range(bound_1_tmp.shape[0]):
             temp = np.vstack((bound_1_tmp[i], bound_2_tmp[i]))
             plt.plot(temp[:, 0], temp[:, 1], "r-", linewidth=0.7)
@@ -101,20 +134,12 @@ def preprocess_track(
 
         raise IOError("At least two spline normals are crossed, check input or increase smoothing factor!")
 
-    # ------------------------------------------------------------------------------------------------------------------
-    # ENFORCE MINIMUM TRACK WIDTH (INFLATE TIGHTER SECTIONS UNTIL REACHED) ---------------------------------------------
-    # ------------------------------------------------------------------------------------------------------------------
-
-    if min_width is not None:
-        inflated_track: DtoRacetrack = WidthInflationLayer().inflate_width(
-            dto_racetrack=spline_track,
-            mininmum_track_width=min_width,
-            return_new_instance=False
-        )
     else:
-        inlated_track: DtoRacetrack = spline_track
+        return (
+            coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp
+        )
 
-    return reftrack_interp, normvec_normalized_interp, a_interp, coeffs_x_interp, coeffs_y_interp
+
 
 
 def old_preprocess_track(

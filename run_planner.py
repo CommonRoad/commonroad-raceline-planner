@@ -62,23 +62,19 @@ class RaceLinePlanner:
         # Ensure paths exist
         os.makedirs(os.path.join(self._module_path, "outputs"), exist_ok=True)
 
-    def setup_vehicle_parameters(self):
+    def import_stuff(self):
         """
         Set up the vehicle parameters by reading from the configuration file.
         """
+        # vehicle params
         print(f"loading vehicle params")
-        # race_car_ini_path
         path_to_racecar_ini=os.path.join(self._module_path, self._execution_config.filepath_config.veh_params_file)
         self._computation_config = ComputationConfigFactory().generate_from_racecar_ini(
             path_to_racecar_ini=path_to_racecar_ini
         )
 
-    def import_track(self) -> None:
-        """
-        Import the track data from the specified file in the configuration.
-        """
+        # racetrack
         print(f"import race track")
-
         self.race_track = RaceTrackFactory().generate_racetrack_from_csv(
             file_path=self._execution_config.filepath_config.track_file,
             vehicle_width=self._computation_config.general_config.vehicle_config.width
@@ -88,18 +84,10 @@ class RaceLinePlanner:
             file_path="/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/DEU_Hhr-1_1.xml",
             vehicle_width=self._computation_config.general_config.vehicle_config.width
         )
-
         self.dto_race_track = DtoRacetrackFactory().generate_from_racetrack(race_track=self.race_track)
 
-        # save start time
+        # Vehicle dynamics
         self.t_start = time.perf_counter()
-
-    def import_vehicle_dynamics(self):
-        """
-        Import the vehicle dynamics data from the specified file in the configuration.
-        """
-        # TODO: debug mintime
-        # import ggv and ax_max_machines (if required)
         print(f"ggv loaded")
         if not (
                 self._execution_config.optimization_type == OptimizationType.MINIMUM_LAPTIME
@@ -114,11 +102,12 @@ class RaceLinePlanner:
             self.ggv = None
             self.ax_max_machines = None
 
+
     def prepare_reftrack(self):
         """
         Prepare the track by interpolating and normalizing the imported track data.
         """
-        self.reftrack_interp, self.normvec_normalized_interp, self.a_interp, self.coeffs_x_interp, self.coeffs_y_interp = \
+        self.spline_track, self.normvec_normalized_interp, self.a_interp, self.coeffs_x_interp, self.coeffs_y_interp = \
             preprocess_track(
                 race_track=self.dto_race_track,
                 k_reg=self._computation_config.general_config.smoothing_config.k_reg,
@@ -140,16 +129,16 @@ class RaceLinePlanner:
         # Shortest path optimization
         if self._execution_config.optimization_type == OptimizationType.SHORTEST_PATH:
             self.alpha_opt = opt_shortest_path(
-                reftrack=self.reftrack_interp,
+                reftrack=self.spline_track,
                 normvectors=self.normvec_normalized_interp,
-                w_veh=self._computation_config.optimization_config.opt_shortest_path_config.vehicle_width_opt,
+                vehicle_width=self._computation_config.optimization_config.opt_shortest_path_config.vehicle_width_opt,
                 print_debug=self._execution_config.debug_config.debug
             )
 
         # Minimum curvature optimization
         elif self._execution_config.optimization_type == OptimizationType.MINIMUM_CURVATURE:
             self.alpha_opt, maximum_curvature_error = opt_min_curv(
-                reftrack=self.reftrack_interp,
+                reftrack=self.spline_track,
                 normvectors=self.normvec_normalized_interp,
                 A=self.a_interp,
                 kappa_bound=self._computation_config.general_config.vehicle_config.curvature_limit,
@@ -162,6 +151,7 @@ class RaceLinePlanner:
 
         print(f"end optimization")
 
+
     def interpolate_raceline(self):
         """
         Interpolate the raceline using the optimized trajectory.
@@ -169,7 +159,7 @@ class RaceLinePlanner:
         self.raceline_interp, self.a_opt, self.coeffs_x_opt, self.coeffs_y_opt, \
             self.spline_inds_opt_interp, self.t_vals_opt_interp, self.s_points_opt_interp, \
             self.spline_lengths_opt, self.el_lengths_opt_interp = create_raceline(
-            refline=self.reftrack_interp[:, :2],
+            refline=self.spline_track.to_2d_np_array(),
             normvectors=self.normvec_normalized_interp,
             alpha=self.alpha_opt,
             stepsize_interp=self._computation_config.general_config.stepsize_config.stepsize_interp_after_opt
@@ -328,7 +318,7 @@ class RaceLinePlanner:
         Check the trajectory for errors.
         """
         self.bound1, self.bound2 = check_traj(
-              reftrack=self.reftrack_interp,
+              reftrack=self.spline_track,
               reftrack_normvec_normalized=self.normvec_normalized_interp,
               length_veh=self._computation_config.general_config.vehicle_config.length,
               width_veh=self._computation_config.general_config.vehicle_config.width,
@@ -362,7 +352,7 @@ class RaceLinePlanner:
                 ggv_file=self._execution_config.filepath_config.ggv_file,
                 spline_lengths_opt=self.spline_lengths_opt,
                 trajectory_opt=self.trajectory_opt,
-                reftrack=self.reftrack_interp,
+                reftrack=self.spline_track,
                 normvec_normalized=self.normvec_normalized_interp,
                 alpha_opt=self.alpha_opt
             )
@@ -398,7 +388,7 @@ class RaceLinePlanner:
             racetraj_vel_3d_stepsize=self._execution_config.debug_config.racetraj_vel_3d_stepsize,
             width_veh_opt=self._computation_config.optimization_config.opt_min_curvature_config.vehicle_width_opt,
             width_veh_real=self._computation_config.general_config.vehicle_config.width,
-            refline=self.reftrack_interp[:, :2],
+            refline=self.spline_track[:, :2],
             bound1_imp=bound1_imp,
             bound2_imp=bound2_imp,
             bound1_interp=self.bound1,
@@ -440,11 +430,7 @@ class RaceLinePlanner:
         Run the RaceLinePlanner.
         """
         print("1")
-        self.setup_vehicle_parameters()
-        print("2")
-        self.import_track()
-        print("3")
-        self.import_vehicle_dynamics()
+        self.import_stuff()
         print("4")
         self.prepare_reftrack()
         print("5")

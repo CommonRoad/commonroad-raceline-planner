@@ -46,22 +46,23 @@ class LinearInterpolationLayer(BaseRacetrackLayer):
             warnings.warn("racetrack is already interpolated wont interpolate again")
         else:
             # calculate desired lenghts depending on specified stepsize (+1 because last element is included)
-            num_points: int = math.ceil(self.track_length / interpol_stepsize) + 1
+            num_points: int = math.ceil(interpolate_track.track_length / interpol_stepsize) + 1
             interpoint_interpol_dist = np.linspace(
                 start=0.0,
-                stop=self.track_length,
+                stop=interpolate_track.track_length,
                 num=num_points
             )
 
             # interpolate centerline and widths
-            interpolate_track.x_m = np.interp(interpoint_interpol_dist, interpolate_track.track_length, interpolate_track.x_m)
-            interpolate_track.y_m = np.interp(interpoint_interpol_dist, interpolate_track.track_length, interpolate_track.y_m)
-            interpolate_track.w_tr_left_m = np.interp(interpoint_interpol_dist, interpolate_track.track_length, interpolate_track.w_tr_left_m)
-            interpolate_track.w_tr_right_m = np.interp(interpoint_interpol_dist, interpolate_track.track_length, interpolate_track.w_tr_right_m)
+            interpolate_track.x_m = np.interp(interpoint_interpol_dist, interpolate_track.track_length_per_point, interpolate_track.x_m)
+            interpolate_track.y_m = np.interp(interpoint_interpol_dist, interpolate_track.track_length_per_point, interpolate_track.y_m)
+            interpolate_track.w_tr_left_m = np.interp(interpoint_interpol_dist, interpolate_track.track_length_per_point, interpolate_track.w_tr_left_m)
+            interpolate_track.w_tr_right_m = np.interp(interpoint_interpol_dist, interpolate_track.track_length_per_point, interpolate_track.w_tr_right_m)
 
+            # TODO: make force update
             # recalc other members
             interpolate_track.num_points = interpolate_track.x_m.shape[0]
-            interpolate_track.interpoint_length = np.linalg.norm(np.hstack(interpolate_track.x_m, interpolate_track.y_m), ord=2, axis=1)
+            interpolate_track.interpoint_length = np.sqrt(np.sum(np.power(np.diff(interpolate_track.to_2d_np_array(), axis=0), 2), axis=0))
             interpolate_track.track_length_per_point = np.cumsum(interpolate_track.interpoint_length)
             if (interpolate_track.track_length_per_point[0] != 0.0):
                 interpolate_track.track_length_per_point = np.insert(interpolate_track.track_length_per_point, 0, 0.0)
