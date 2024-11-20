@@ -1,16 +1,11 @@
-import copy
 import json
 import os
-import sys
 import time
-from dataclasses import asdict
 from typing import Union
 
 import numpy as np
 from matplotlib import pyplot as plt
 from pathlib import Path
-
-from shapely.creation import points
 
 from commonroad_raceline_planner.configuration.computation_config import ComputationConfig, ComputationConfigFactory
 # own package
@@ -21,7 +16,7 @@ from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn
 from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
 from commonroad_raceline_planner.optimization.opt_shortest_path import opt_shortest_path
 from commonroad_raceline_planner.util.trajectory_planning_helpers.create_raceline import create_raceline
-from commonroad_raceline_planner.velocity_profile.calc_vel_profile import calc_vel_profile
+from commonroad_raceline_planner.planner.ftm_planner.velenis_vel_profile import calc_vel_profile
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_t_profile import calc_t_profile
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_head_curv_an import calc_head_curv_an
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_ax_profile import calc_ax_profile
@@ -32,7 +27,6 @@ from commonroad_raceline_planner.util.validation import check_traj
 from commonroad_raceline_planner.configuration.execution_config import ExecutionConfig, ExecutionConfigFactory
 from commonroad_raceline_planner.configuration.optimization_config import OptimizationType
 
-from commonroad_raceline_planner.configuration.general_config import setup_vehicle_parameters
 from commonroad.common.file_reader import CommonRoadFileReader
 
 from commonroad_raceline_planner.util.io import (

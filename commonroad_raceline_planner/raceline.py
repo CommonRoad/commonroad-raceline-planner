@@ -41,12 +41,19 @@ class RaceLine:
             self.points.shape[0]
             == self.length_per_point[0]
             == self.velocity_long_per_point.shape[0]
-            == self.acceleration_long_per_point.shape[0] == self.curvature_per_point.shape[0]
+            == self.acceleration_long_per_point.shape[0]
+            == self.curvature_per_point.shape[0]
             == self.heading_per_point.shape[0]
             == self.num_points
         ):
             warnings.warn(
                 f"raceline has mismatching length of data"
+                f"points={self.points.shape[0]}"
+                f"num_length_per_point={self.length_per_point[0]}"
+                f"num_acceleration_long_per_point={self.acceleration_long_per_point.shape[0]}"
+                f"num_curvature_per_point={self.curvature_per_point.shape[0]}"
+                f"num_heading_per_point={self.heading_per_point.shape[0]}"
+                f"num_points={self.num_points}"
             )
             sanity = False
 
