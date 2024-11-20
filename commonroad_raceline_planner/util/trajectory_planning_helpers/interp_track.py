@@ -3,13 +3,13 @@ import copy
 import numpy as np
 import math
 
-from commonroad_raceline_planner.ractetrack import RaceTrack, DtoRacetrack
+from commonroad_raceline_planner.ractetrack import RaceTrack, DtoFTM
 
 
 def interp_track(
-        track: DtoRacetrack,
+        track: DtoFTM,
         stepsize: float
-) -> DtoRacetrack:
+) -> DtoFTM:
     """
     close and interpolate track
     """

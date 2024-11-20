@@ -10,10 +10,13 @@ import numpy as np
 from matplotlib import pyplot as plt
 from pathlib import Path
 
+from shapely.creation import points
+
 from commonroad_raceline_planner.configuration.computation_config import ComputationConfig, ComputationConfigFactory
 # own package
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
-from commonroad_raceline_planner.ractetrack import DtoRacetrack, DtoRacetrackFactory
+from commonroad_raceline_planner.raceline import RaceLine, RaceLineFactory
+from commonroad_raceline_planner.ractetrack import DtoFTM, DtoFTMFactory
 from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_veh_dyn_info
 from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
 from commonroad_raceline_planner.optimization.opt_shortest_path import opt_shortest_path
@@ -23,13 +26,14 @@ from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_t_profile
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_head_curv_an import calc_head_curv_an
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_ax_profile import calc_ax_profile
 from commonroad_raceline_planner.util.common import progressbar as tph_progressbar
-from commonroad_raceline_planner.util.visualization.result_plots import result_plots
+from commonroad_raceline_planner.util.visualization.result_plots import result_plots, plot_cr_results
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
 from commonroad_raceline_planner.util.validation import check_traj
 from commonroad_raceline_planner.configuration.execution_config import ExecutionConfig, ExecutionConfigFactory
 from commonroad_raceline_planner.configuration.optimization_config import OptimizationType
 
 from commonroad_raceline_planner.configuration.general_config import setup_vehicle_parameters
+from commonroad.common.file_reader import CommonRoadFileReader
 
 from commonroad_raceline_planner.util.io import (
     export_traj_ltpl,
@@ -57,7 +61,7 @@ class RaceLinePlanner:
         self._execution_config = execution_config
         self._module_path: Union[str, Path] = os.path.dirname(os.path.abspath(__file__))
 
-        self.dto_race_track: DtoRacetrack = None
+        self.dto_race_track: DtoFTM = None
 
         # Ensure paths exist
         os.makedirs(os.path.join(self._module_path, "outputs"), exist_ok=True)
@@ -75,16 +79,20 @@ class RaceLinePlanner:
 
         # racetrack
         print(f"import race track")
-        self.race_track = RaceTrackFactory().generate_racetrack_from_csv(
+        self.race_track_csv = RaceTrackFactory().generate_racetrack_from_csv(
             file_path=self._execution_config.filepath_config.track_file,
             vehicle_width=self._computation_config.general_config.vehicle_config.width
         )
 
-        self.race_track_cr = RaceTrackFactory().generate_racetrack_from_cr_scenario(
-            file_path="/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/ZAM_realrounded-1_1_T-1.xml",
+        # cr-io
+        cr_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/DEU_Hhr-1_1.xml"
+        self.scenario, planning_problem_set = CommonRoadFileReader(cr_path).open()
+        self.planning_problem = list(planning_problem_set.planning_problem_dict.values())[0]
+        self.race_track = RaceTrackFactory().generate_racetrack_from_cr_scenario(
+            file_path=cr_path,
             vehicle_width=self._computation_config.general_config.vehicle_config.width
         )
-        self.dto_race_track = DtoRacetrackFactory().generate_from_racetrack(race_track=self.race_track)
+        self.dto_race_track = DtoFTMFactory().generate_from_racetrack(race_track=self.race_track)
 
         # Vehicle dynamics
         self.t_start = time.perf_counter()
@@ -337,7 +345,7 @@ class RaceLinePlanner:
         )
         self.spline_track.close_racetrack()
 
-    def export_trajectory(self):
+    def generate_trajectories(self):
         """
         Export the trajectory to the specified file in the configuration.
         """
@@ -362,6 +370,16 @@ class RaceLinePlanner:
                 alpha_opt=self.alpha_opt
             )
         print("INFO: Finished export of trajectory:", time.strftime("%H:%M:%S"))
+
+        self.race_line: RaceLine = RaceLineFactory().generate_raceline(
+            length_per_point=self.s_points_opt_interp,
+            points=self.raceline_interp,
+            velocity_long_per_point=self.vx_profile_opt,
+            acceleration_long_per_point=self.ax_profile_opt,
+            curvature_per_point=self.kappa_opt,
+            heading_per_point=self.kappa_opt,
+            closed=True
+        )
 
     def plot_results(self):
         """
@@ -407,6 +425,14 @@ class RaceLinePlanner:
             bound2_interp=self.bound2,
             trajectory=self.trajectory_opt
         )
+
+        if self.race_track.cr_scenario is not None:
+            plot_cr_results(
+                race_line=self.race_line,
+                lanelet_network=self.scenario.lanelet_network,
+                planning_problem=self.planning_problem
+            )
+
 
         # print("First element of trajectory_opt:", self.trajectory_opt[0])
         # print("Second element of trajectory_opt:", self.trajectory_opt[1])
@@ -462,7 +488,7 @@ class RaceLinePlanner:
         print("11")
         self.check_trajectory()
         print("12")
-        self.export_trajectory()
+        self.generate_trajectories()
         print("13")
         self.export_reference_path()
         print("14")

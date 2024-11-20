@@ -4,7 +4,7 @@ import math
 import numpy as np
 
 from commonroad_raceline_planner.racetrack_layers.base_layer import BaseRacetrackLayer
-from commonroad_raceline_planner.ractetrack import DtoRacetrack
+from commonroad_raceline_planner.ractetrack import DtoFTM
 
 
 class LinearInterpolationLayer(BaseRacetrackLayer):
@@ -14,12 +14,12 @@ class LinearInterpolationLayer(BaseRacetrackLayer):
 
     def linear_interpolate_racetrack(
             self,
-            dto_racetrack: DtoRacetrack,
+            dto_racetrack: DtoFTM,
             interpol_stepsize: float,
             return_new_instance: bool,
             close_track: bool = True,
 
-    ) -> DtoRacetrack:
+    ) -> DtoFTM:
         """
         Linearly interpolate race track and return new instance
         :param dto_racetrack: interpolated dto racetrack

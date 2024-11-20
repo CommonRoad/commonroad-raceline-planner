@@ -2,7 +2,7 @@ import copy
 import warnings
 
 from commonroad_raceline_planner.racetrack_layers.base_layer import BaseRacetrackLayer
-from commonroad_raceline_planner.ractetrack import DtoRacetrack
+from commonroad_raceline_planner.ractetrack import DtoFTM
 
 
 class WidthInflationLayer(BaseRacetrackLayer):
@@ -12,12 +12,12 @@ class WidthInflationLayer(BaseRacetrackLayer):
 
     def inflate_width(
             self,
-            dto_racetrack: DtoRacetrack,
+            dto_racetrack: DtoFTM,
             mininmum_track_width: float,
             return_new_instance: bool,
             close_track: bool = True,
 
-    ) -> DtoRacetrack:
+    ) -> DtoFTM:
         """
         Inflates track boundaries to have minimum width
         """

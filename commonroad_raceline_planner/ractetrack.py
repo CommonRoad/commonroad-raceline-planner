@@ -83,7 +83,7 @@ class RaceTrack:
 
 
 
-class DtoRacetrack:
+class DtoFTM:
     def __init__(
             self,
             race_track: RaceTrack,
@@ -160,7 +160,8 @@ class DtoRacetrack:
                 y_m=self.y_m
             )
             self.track_length_per_point = np.cumsum(self.interpoint_length)
-            if (self.track_length_per_point[0] != 0.0):
+            # somehow, some commonroad maps already have a 0.0 at start
+            if (self.track_length_per_point[0] != 0.0 or self.track_length_per_point.shape[0] != self.x_m.shape[0]):
                 self.track_length_per_point = np.insert(self.track_length_per_point, 0, 0.0)
             self.track_length = self.track_length_per_point[-1]
             self.is_closed = True
@@ -212,7 +213,7 @@ class DtoRacetrack:
 
 
 
-class DtoRacetrackFactory:
+class DtoFTMFactory:
 
     def generate_from_racetrack(
             self,
@@ -220,16 +221,16 @@ class DtoRacetrackFactory:
             is_closed: bool = False,
             is_interpolated: bool = False,
             is_spline_approximated: bool = False
-    ) -> DtoRacetrack:
+    ) -> DtoFTM:
         """
-        Generates DtoRacetrack instance from RaceTrack instance
+        Generates DtoFTM instance from RaceTrack instance
         :param race_track:
         :param is_closed:
         :param is_interpolated:
         :param is_spline_approximated:
         :return:
         """
-        return DtoRacetrack(
+        return DtoFTM(
             race_track=race_track,
             x_m=copy.deepcopy(race_track.x_m),
             y_m=copy.deepcopy(race_track.y_m),
@@ -259,11 +260,11 @@ class DtoRacetrackFactory:
             is_closed: bool,
             is_interpolated: bool,
             is_spline_approximated: bool,
-    ) -> DtoRacetrack:
+    ) -> DtoFTM:
         """
-        Generates DtoRacetrack instance from constructor values
+        Generates DtoFTM instance from constructor values
         """
-        return DtoRacetrack(
+        return DtoFTM(
             race_track=race_track,
             x_m=x_m,
             y_m=y_m,
@@ -290,7 +291,7 @@ class DtoRacetrackFactory:
             is_closed: bool,
             is_interpolated: bool,
             is_spline_approximated: bool,
-    ) -> DtoRacetrack:
+    ) -> DtoFTM:
         """
         Generate dtoracetrack instance from centerline and bounds
         :param race_track:
@@ -312,7 +313,7 @@ class DtoRacetrackFactory:
         track_length_per_point = np.insert(track_length_per_point, 0, 0.0)
         track_length = track_length_per_point[-1]
 
-        return DtoRacetrack(
+        return DtoFTM(
             race_track=race_track,
             x_m=x_m,
             y_m=y_m,

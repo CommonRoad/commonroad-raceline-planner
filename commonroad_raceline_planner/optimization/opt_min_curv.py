@@ -7,11 +7,11 @@ import time
 # typing
 from typing import Tuple
 
-from commonroad_raceline_planner.ractetrack import DtoRacetrack
+from commonroad_raceline_planner.ractetrack import DtoFTM
 
 
 def opt_min_curv(
-        reftrack: DtoRacetrack,
+        reftrack: DtoFTM,
          normvectors: np.ndarray,
          A: np.ndarray,
          kappa_bound: float,

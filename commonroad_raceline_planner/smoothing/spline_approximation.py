@@ -8,19 +8,19 @@ import math
 import commonroad_raceline_planner.util.trajectory_planning_helpers as tph
 from commonroad_raceline_planner.racetrack_layers.lin_interpol_layer import LinearInterpolationLayer
 from commonroad_raceline_planner.racetrack_layers.spline_approx_layer import SplineApproxLayer
-from commonroad_raceline_planner.ractetrack import RaceTrack, DtoRacetrack
+from commonroad_raceline_planner.ractetrack import RaceTrack, DtoFTM
 from commonroad_raceline_planner.util.trajectory_planning_helpers.interp_track import interp_track
 from commonroad_raceline_planner.util.trajectory_planning_helpers.side_of_line import side_of_line
 
 
 def spline_approximation(
-        track: DtoRacetrack,
+        track: DtoFTM,
          k_reg: int = 3,
          s_reg: int = 10,
          stepsize_prep: float = 1.0,
          stepsize_reg: float = 3.0,
          debug: bool = False
-) -> DtoRacetrack:
+) -> DtoFTM:
     """
     """
 
@@ -28,14 +28,14 @@ def spline_approximation(
     track.close_racetrack()
 
     # liner interpolation
-    interpolated_track: DtoRacetrack = LinearInterpolationLayer().linear_interpolate_racetrack(
+    interpolated_track: DtoFTM = LinearInterpolationLayer().linear_interpolate_racetrack(
         dto_racetrack=track,
         interpol_stepsize=stepsize_prep,
         return_new_instance=True
     )
 
 
-    spline_track: DtoRacetrack = SplineApproxLayer().spline_approximation(
+    spline_track: DtoFTM = SplineApproxLayer().spline_approximation(
         dto_racetrack=track,
         dto_racetrack_interpolated=interpolated_track,
         k_reg=k_reg,

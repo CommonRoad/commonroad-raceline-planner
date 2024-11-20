@@ -3,11 +3,11 @@ import math
 import quadprog
 import time
 
-from commonroad_raceline_planner.ractetrack import DtoRacetrack
+from commonroad_raceline_planner.ractetrack import DtoFTM
 
 
 def opt_shortest_path(
-        reftrack: DtoRacetrack,
+        reftrack: DtoFTM,
           normvectors: np.ndarray,
           vehicle_width: float,
           print_debug: bool = False
@@ -89,7 +89,7 @@ def opt_shortest_path(
 
 
 def old_opt_shortest_path(
-        reftrack: DtoRacetrack,
+        reftrack: DtoFTM,
           normvectors: np.ndarray,
           w_veh: float,
           print_debug: bool = False

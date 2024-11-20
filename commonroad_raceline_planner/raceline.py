@@ -6,6 +6,10 @@ import numpy as np
 # typing
 from typing import Union
 
+from shapely.creation import points
+
+from commonroad_raceline_planner.ractetrack import DtoFTM
+
 
 @dataclass
 class RaceLine:
@@ -69,7 +73,7 @@ class RaceLineFactory:
     """
 
     @staticmethod
-    def generate_race_line(
+    def generate_raceline(
         points: np.ndarray,
         length_per_point: np.ndarray,
         velocity_long_per_point: np.ndarray,
@@ -97,10 +101,4 @@ class RaceLineFactory:
             heading_per_point=heading_per_point,
             closed=closed
         )
-
-
-
-
-
-
 

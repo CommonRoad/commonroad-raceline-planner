@@ -9,7 +9,7 @@ import math
 import numpy as np
 
 from commonroad_raceline_planner.racetrack_layers.base_layer import BaseRacetrackLayer
-from commonroad_raceline_planner.ractetrack import DtoRacetrack, DtoRacetrackFactory
+from commonroad_raceline_planner.ractetrack import DtoFTM, DtoFTMFactory
 from commonroad_raceline_planner.util.trajectory_planning_helpers.side_of_line import side_of_line
 
 from typing import List
@@ -22,19 +22,19 @@ class SplineApproxLayer(BaseRacetrackLayer):
 
     def spline_approximation(
             self,
-            dto_racetrack: DtoRacetrack,
-            dto_racetrack_interpolated: DtoRacetrack,
+            dto_racetrack: DtoFTM,
+            dto_racetrack_interpolated: DtoFTM,
             k_reg: int = 3,
             s_reg: int = 10,
             stepsize_reg: float = 3.0,
             debug: bool = False
-    ) -> DtoRacetrack:
+    ) -> DtoFTM:
 
 
         # TODO: split into different methods
 
-        original_track: DtoRacetrack = copy.deepcopy(dto_racetrack)
-        interpol_track: DtoRacetrack = copy.deepcopy(dto_racetrack_interpolated)
+        original_track: DtoFTM = copy.deepcopy(dto_racetrack)
+        interpol_track: DtoFTM = copy.deepcopy(dto_racetrack_interpolated)
 
 
         # close race track if not already done
@@ -135,7 +135,7 @@ class SplineApproxLayer(BaseRacetrackLayer):
 
         track_reg = np.column_stack((path_smoothed, w_tr_right_smoothed_cl[:-1], w_tr_left_smoothed_cl[:-1]))
 
-        spline_track = DtoRacetrackFactory().generate_from_centerline_and_bounds(
+        spline_track = DtoFTMFactory().generate_from_centerline_and_bounds(
             race_track=original_track.original_track,
             x_m=track_reg[:, 0],
             y_m=track_reg[:, 1],

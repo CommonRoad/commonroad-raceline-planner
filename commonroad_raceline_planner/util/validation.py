@@ -1,6 +1,6 @@
 import numpy as np
 
-from commonroad_raceline_planner.ractetrack import DtoRacetrack
+from commonroad_raceline_planner.ractetrack import DtoFTM
 # Own code base
 from commonroad_raceline_planner.util.track_processing import (
     interp_track,
@@ -8,7 +8,7 @@ from commonroad_raceline_planner.util.track_processing import (
 )
 
 
-def check_traj(reftrack: DtoRacetrack,
+def check_traj(reftrack: DtoFTM,
                reftrack_normvec_normalized: np.ndarray,
                trajectory: np.ndarray,
                ggv: np.ndarray,

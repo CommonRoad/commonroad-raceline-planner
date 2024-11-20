@@ -5,7 +5,7 @@ import math
 
 from commonroad_raceline_planner.racetrack_layers.width_inflation_layer import WidthInflationLayer
 # CommonRoad
-from commonroad_raceline_planner.ractetrack import RaceTrack, DtoRacetrack, DtoRacetrackFactory
+from commonroad_raceline_planner.ractetrack import RaceTrack, DtoFTM, DtoFTMFactory
 from commonroad_raceline_planner.smoothing.spline_approximation import spline_approximation
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
 from commonroad_raceline_planner.util.trajectory_planning_helpers.check_normals_crossing import check_normals_crossing
@@ -18,7 +18,7 @@ from typing import Tuple
 
 
 def preprocess_track(
-        race_track: DtoRacetrack,
+        race_track: DtoFTM,
         k_reg: int,
         s_reg: int,
         stepsize_prep: float,
@@ -52,13 +52,13 @@ def preprocess_track(
     race_track.close_racetrack()
 
     # liner interpolation
-    interpolated_track: DtoRacetrack = LinearInterpolationLayer().linear_interpolate_racetrack(
+    interpolated_track: DtoFTM = LinearInterpolationLayer().linear_interpolate_racetrack(
         dto_racetrack=race_track,
         interpol_stepsize=stepsize_prep,
         return_new_instance=True
     )
 
-    spline_track: DtoRacetrack = SplineApproxLayer().spline_approximation(
+    spline_track: DtoFTM = SplineApproxLayer().spline_approximation(
         dto_racetrack=race_track,
         dto_racetrack_interpolated=interpolated_track,
         k_reg=k_reg,
@@ -75,13 +75,13 @@ def preprocess_track(
 
     # inflate track
     if min_width is not None:
-        inflated_track: DtoRacetrack = WidthInflationLayer().inflate_width(
+        inflated_track: DtoFTM = WidthInflationLayer().inflate_width(
             dto_racetrack=spline_track,
             mininmum_track_width=min_width,
             return_new_instance=False
         )
     else:
-        inflated_track: DtoRacetrack = spline_track
+        inflated_track: DtoFTM = spline_track
 
     return inflated_track, normvec_normalized_interp, a_interp, coeffs_x_interp, coeffs_y_interp
 
@@ -89,7 +89,7 @@ def preprocess_track(
 
 
 def compute_normals_and_check_crosing(
-        race_track: DtoRacetrack,
+        race_track: DtoFTM,
         normal_crossing_horizon: int = 10
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
