@@ -1,7 +1,6 @@
 import copy
 import warnings
 
-from numpy.array_api import asarray
 from scipy.interpolate import splprep, splev
 from scipy.optimize import fmin
 from scipy.spatial.distance import euclidean
@@ -94,7 +93,7 @@ class SplineApproxLayer(BaseRacetrackLayer):
             closest_t_glob_cl[i] = fmin(
                  self._distance_to_point_on_spline,
                  x0=t_glob_guess_cl[i],
-                 args=(tck_cl, asarray([original_track.x_m[i], original_track.y_m[i]])),
+                 args=(tck_cl, np.asarray([original_track.x_m[i], original_track.y_m[i]])),
                  disp=False
             )
 

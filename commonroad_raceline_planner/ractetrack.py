@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import numpy as np
 import warnings
 
-from commonroad.scenario.scenario import Scenario
+from commonroad.scenario.lanelet import LaneletNetwork
 
 # commonroad
 from commonroad_raceline_planner.util.exceptions import (
@@ -31,7 +31,7 @@ class RaceTrack:
     track_length_per_point: Union[np.ndarray, None] = None
     track_length: Union[float, None] = None
     num_points: Union[int, None] = None
-    cr_scenario: Union[Scenario, None] = None
+    lanelet_network: Union[LaneletNetwork, None] = None
 
     def __post_init__(self):
         self.num_points = self.x_m.shape[0]

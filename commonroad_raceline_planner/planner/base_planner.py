@@ -1,13 +1,13 @@
-from abc import ABC, abstractmethod
-
-# commonroad
-from commonroad.scenario.lanelet import LaneletNetwork
+from abc import ABC, abstractmethod, abstractproperty
+from logging import Logger
 
 # own code base
 from commonroad_raceline_planner.raceline import RaceLine
 
 # typing
 from typing import Any
+
+from commonroad_raceline_planner.ractetrack import RaceTrack
 
 
 class BaseRacelinePlanner(ABC):
@@ -17,7 +17,7 @@ class BaseRacelinePlanner(ABC):
 
     def __init__(
             self,
-            lanelet_network: LaneletNetwork,
+            race_track: RaceTrack,
             config: Any
     ) -> None:
         """
@@ -25,16 +25,17 @@ class BaseRacelinePlanner(ABC):
         :param lanelet_network: cr lanelet network
         :param config: planner config
         """
-        self._lanelet_network: LaneletNetwork = lanelet_network
-        self._raceline_planning_pp = None
+        self._race_track: RaceTrack = race_track
         self._config: Any = config
 
     @property
-    def lanelet_network(self) -> LaneletNetwork:
+    @abstractmethod
+    def logger(self) -> Logger:
         """
-        :return: commonroad lanelet network
+        :return: logger
         """
-        return self._lanelet_network
+        pass
+
 
     @property
     def config(self) -> Any:
@@ -44,19 +45,9 @@ class BaseRacelinePlanner(ABC):
         return self._config
 
     @property
-    def raceline_planning_problem(self):
-        return self._raceline_planning_pp
+    def race_track(self):
+        return self._race_track
 
-    @abstractmethod
-    def update_raceline_planning_problem(
-            self,
-            raceline_problem
-    ) -> None:
-        """
-        Updates the raceline planning problem
-        :param raceline_problem: cr raceline planning problem
-        """
-        pass
 
     @abstractmethod
     def update_config(
@@ -68,6 +59,7 @@ class BaseRacelinePlanner(ABC):
         :param config: planner config
         """
         pass
+
 
     @abstractmethod
     def plan(self) -> RaceLine:

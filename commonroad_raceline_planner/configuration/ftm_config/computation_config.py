@@ -3,12 +3,12 @@ from pathlib import Path
 
 # own code base
 from commonroad_raceline_planner.configuration.base_config import BaseConfigFactory
-from commonroad_raceline_planner.configuration.optimization_config import (
+from commonroad_raceline_planner.configuration.ftm_config.optimization_config import (
     OptimizationConfigFactory,
     OptimizationType,
     OptimizationConfig
 )
-from commonroad_raceline_planner.configuration.general_config import (
+from commonroad_raceline_planner.configuration.ftm_config.general_config import (
     GeneralConfigFactory,
     GeneralConfig
 )

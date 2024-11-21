@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 import math
 from commonroad_raceline_planner.util.trajectory_planning_helpers.normalize_psi import normalize_psi
@@ -8,7 +10,7 @@ def calc_head_curv_an(coeffs_x: np.ndarray,
                       ind_spls: np.ndarray,
                       t_spls: np.ndarray,
                       calc_curv: bool = True,
-                      calc_dcurv: bool = False) -> tuple:
+                      calc_dcurv: bool = False) -> Tuple[float, float]:
     """
     author:
     Alexander Heilmeier

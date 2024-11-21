@@ -101,7 +101,7 @@ class RaceTrackFactory:
 
     @staticmethod
     def generate_racetrack_from_cr_scenario(
-            file_path: str,
+            lanelet_network: LaneletNetwork,
             vehicle_width: float,
             num_laps: int = 1,
             flip_track: bool = False,
@@ -118,9 +118,6 @@ class RaceTrackFactory:
             (width_track_left and width_track_right)
             """
         # Open the XML file and read the scenario
-        scenario, _ = CommonRoadFileReader(file_path).open()
-        lanelet_network = scenario.lanelet_network
-
         points = []
         lanelets = RaceTrackFactory.sort_lanelets_by_id(lanelet_network)
 
@@ -184,7 +181,7 @@ class RaceTrackFactory:
             y_m=npoints[:, 1],
             w_tr_right_m=npoints[:, 2],
             w_tr_left_m=npoints[:, 3],
-            cr_scenario=scenario
+            lanelet_network=lanelet_network
         )
 
 

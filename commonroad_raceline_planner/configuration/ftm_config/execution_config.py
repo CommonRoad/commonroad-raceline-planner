@@ -1,12 +1,12 @@
 import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 # typing
 from typing import Optional, List, Union
 
 from commonroad_raceline_planner.configuration.base_config import BaseConfigFactory
-from commonroad_raceline_planner.configuration.optimization_config import OptimizationType
+from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
 
 
 @dataclass

@@ -7,12 +7,12 @@ import numpy as np
 from matplotlib import pyplot as plt
 from pathlib import Path
 
-from commonroad_raceline_planner.configuration.computation_config import ComputationConfig, ComputationConfigFactory
+from commonroad_raceline_planner.configuration.ftm_config.computation_config import ComputationConfig, ComputationConfigFactory
 # own package
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
 from commonroad_raceline_planner.raceline import RaceLine, RaceLineFactory
 from commonroad_raceline_planner.ractetrack import DtoFTM, DtoFTMFactory
-from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_veh_dyn_info
+from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_ggv_diagram
 from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
 from commonroad_raceline_planner.optimization.opt_shortest_path import opt_shortest_path
 from commonroad_raceline_planner.util.trajectory_planning_helpers.create_raceline import create_raceline
@@ -24,8 +24,8 @@ from commonroad_raceline_planner.util.common import progressbar as tph_progressb
 from commonroad_raceline_planner.util.visualization.result_plots import result_plots, plot_cr_results
 from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
 from commonroad_raceline_planner.util.validation import check_traj
-from commonroad_raceline_planner.configuration.execution_config import ExecutionConfig, ExecutionConfigFactory
-from commonroad_raceline_planner.configuration.optimization_config import OptimizationType
+from commonroad_raceline_planner.configuration.ftm_config.execution_config import ExecutionConfig, ExecutionConfigFactory
+from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
 
 from commonroad.common.file_reader import CommonRoadFileReader
 
@@ -66,7 +66,7 @@ class RaceLinePlanner:
         """
         # vehicle params
         print(f"loading vehicle params")
-        path_to_racecar_ini=os.path.join(self._module_path, self._execution_config.filepath_config.veh_params_file)
+        path_to_racecar_ini = os.path.join(self._module_path, self._execution_config.filepath_config.veh_params_file)
         self._computation_config = ComputationConfigFactory().generate_from_racecar_ini(
             path_to_racecar_ini=path_to_racecar_ini
         )
@@ -83,7 +83,7 @@ class RaceLinePlanner:
         self.scenario, planning_problem_set = CommonRoadFileReader(cr_path).open()
         self.planning_problem = list(planning_problem_set.planning_problem_dict.values())[0]
         self.race_track = RaceTrackFactory().generate_racetrack_from_cr_scenario(
-            file_path=cr_path,
+            lanelet_network=self.scenario.lanelet_network,
             vehicle_width=self._computation_config.general_config.vehicle_config.width
         )
         self.dto_race_track = DtoFTMFactory().generate_from_racetrack(race_track=self.race_track)
@@ -95,7 +95,7 @@ class RaceLinePlanner:
                 self._execution_config.optimization_type == OptimizationType.MINIMUM_LAPTIME
                 and not self._execution_config.mintime_config.recalc_vel_profile_by_tph
         ):
-            self.ggv, self.ax_max_machines = import_veh_dyn_info(
+            self.ggv, self.ax_max_machines = import_ggv_diagram(
                 ggv_import_path=self._execution_config.filepath_config.ggv_file,
                 ax_max_machines_import_path=self._execution_config.filepath_config.ax_max_machines_file
             )
