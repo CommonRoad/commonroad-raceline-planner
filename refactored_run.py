@@ -8,7 +8,7 @@ from commonroad_raceline_planner.configuration.ftm_config.ftm_config import FTMC
 from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
 # own package
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
-from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import FTMMinimumCurvaturePlanner
+from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import MinimumCurvaturePlanner
 from commonroad_raceline_planner.ractetrack import DtoFTMFactory
 from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_ggv_diagram
 from commonroad_raceline_planner.configuration.ftm_config.execution_config import ExecutionConfig, ExecutionConfigFactory
@@ -43,7 +43,7 @@ def main(
     )
 
     # instantiate planner
-    mcp = FTMMinimumCurvaturePlanner(
+    mcp = MinimumCurvaturePlanner(
         config=ftm_config, race_track=race_track
     )
     mcp.plan()

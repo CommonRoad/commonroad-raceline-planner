@@ -23,7 +23,7 @@ from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn
 
 
 
-class FTMMinimumCurvaturePlanner(BaseRacelinePlanner):
+class MinimumCurvaturePlanner(BaseRacelinePlanner):
 
     def __init__(
             self,
@@ -133,11 +133,11 @@ class FTMMinimumCurvaturePlanner(BaseRacelinePlanner):
         self._logger.info(".. optimization problem")
         self._optimize()
         self._logger.info(".. generating positional of raceling")
+        self._generate_velocity_information()
+        self._logger.info(".. generate velocity information")
+        self._generate_velocity_information()
 
         return None
-
-
-
 
     def _generate_velocity_information(self) -> None:
         """
@@ -166,13 +166,12 @@ class FTMMinimumCurvaturePlanner(BaseRacelinePlanner):
 
         # calculate laptime
         self._t_profile_cl = calc_t_profile(
-            vx_profile=self.vx_profile_opt,
-            ax_profile=self.ax_profile_opt,
-            el_lengths=self.el_lengths_opt_interp
+            vx_profile=self._vx_profile_opt,
+            ax_profile=self._ax_profile_opt,
+            el_lengths=self._el_lengths_opt_interp
         )
 
-        self._logger.info("Estimated laptime: %.2fs" % self.t_profile_cl[-1])
-
+        self._logger.info("Estimated laptime: %.2fs" % self._t_profile_cl[-1])
 
     def _generate_positional_information(self) -> None:
         """
@@ -196,8 +195,6 @@ class FTMMinimumCurvaturePlanner(BaseRacelinePlanner):
             t_spls=self._t_vals_opt_interp
         )
 
-
-
     def _optimize(self) -> None:
         """
         Call optimization problem
@@ -211,7 +208,6 @@ class FTMMinimumCurvaturePlanner(BaseRacelinePlanner):
             print_debug=self._config.execution_config.debug_config.debug,
             plot_debug=self._config.execution_config.debug_config.mincurv_curv_lin
         )
-
 
     def _preprocess_track(self) -> None:
         """
