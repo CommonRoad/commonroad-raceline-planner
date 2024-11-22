@@ -1,14 +1,14 @@
 import logging
+import time
 from logging import Logger
-from typing import Any
-
 import numpy as np
 
+# own code
 from commonroad_raceline_planner.configuration.ftm_config.ftm_config import FTMConfig
 from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
 from commonroad_raceline_planner.planner.base_planner import BaseRacelinePlanner
 from commonroad_raceline_planner.planner.ftm_planner.velenis_vel_profile import calc_vel_profile
-from commonroad_raceline_planner.raceline import RaceLine
+from commonroad_raceline_planner.raceline import RaceLine, RaceLineFactory
 from commonroad_raceline_planner.racetrack_layers.lin_interpol_layer import LinearInterpolationLayer
 from commonroad_raceline_planner.racetrack_layers.spline_approx_layer import SplineApproxLayer
 from commonroad_raceline_planner.racetrack_layers.width_inflation_layer import WidthInflationLayer
@@ -20,8 +20,11 @@ from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_t_profile
 from commonroad_raceline_planner.util.trajectory_planning_helpers.create_raceline import create_raceline
 from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_ggv_diagram, \
     import_engine_constraints
+from commonroad_raceline_planner.util.validation import check_traj
 
 
+# typing
+from typing import Union
 
 class MinimumCurvaturePlanner(BaseRacelinePlanner):
 
@@ -31,6 +34,12 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
             config: FTMConfig,
             logger_level: int = logging.INFO
     ) -> None:
+        """
+        Minimum curvature planner from Heilmeier et al
+        :param race_track: cr racetrack
+        :param config: ftm_config
+        :param logger_level: logger level, default info
+        """
         super().__init__(
             race_track=race_track,
             config=config
@@ -49,7 +58,7 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
         self._dto: DtoFTM = DtoFTMFactory().generate_from_racetrack(race_track)
 
         # Preprocessing
-        self._inflated_track: DtoFTM = None
+        self._preprocessed_dto: DtoFTM = None
         self._normvec_normalized_interp: np.ndarray = None
         self._a_interp: np.ndarray = None
         self._coeffs_x_interp: np.ndarray = None
@@ -77,6 +86,13 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
         self._vx_profile_opt_cl: np.ndarray = None
         self._ax_profile_opt: np.ndarray = None
         self._t_profile_cl: np.ndarray = None
+
+        # trajectory generation
+        self._trajectory_opt: np.ndarray = None
+        self.traj_race_cl: np.ndarray = None
+
+        # raceline
+        self._race_line: RaceLine = None
 
 
     @property
@@ -107,6 +123,13 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
         """
         return self._maximum_curvature_error
 
+    @property
+    def computed_race_line(self) -> Union[RaceLine, None]:
+        """
+        :return: computed race line or none of not computed
+        """
+        return self._race_line
+
     def update_config(
             self,
             config: FTMConfig
@@ -120,7 +143,13 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
         self._engine_constraints: np.ndarray = import_engine_constraints(
             ax_max_machines_import_path=config.execution_config.filepath_config.ax_max_machines_file
         )
+        self._reset_private_planning_members()
 
+    def reset_planner(self) -> None:
+        """
+        Resets planner to before plan() was called
+        """
+        self._reset_private_planning_members()
 
     def plan(self) -> RaceLine:
         """
@@ -132,14 +161,68 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
         self._preprocess_track()
         self._logger.info(".. optimization problem")
         self._optimize()
-        self._logger.info(".. generating positional of raceling")
-        self._generate_velocity_information()
-        self._logger.info(".. generate velocity information")
-        self._generate_velocity_information()
+        self._logger.info(".. compute positional information")
+        self._compute_positional_information()
+        self._logger.info(".. compute velocity information")
+        self._compute_velocity_information()
+        self._logger.info(".. generate trajectory")
+        self._generate_raceline_object()
+        self._logger.info(".. generate raceline object")
 
-        return None
+        return self._race_line
 
-    def _generate_velocity_information(self) -> None:
+
+    def _generate_raceline_object(self) -> None:
+        """
+        validates generated trajectory and computes cr raceline object
+        """
+        # arrange data into one trajectory
+        self._trajectory_opt = np.column_stack(
+            (self._s_points_opt_interp,
+             self._raceline_interp,
+             self._psi_vel_opt,
+             self._kappa_opt,
+             self._vx_profile_opt,
+             self._ax_profile_opt)
+        )
+        spline_data_opt = np.column_stack(
+            (self._spline_lengths_opt, self._coeffs_x_opt, self._coeffs_y_opt)
+        )
+        self._traj_race_cl = np.vstack(
+            (self._trajectory_opt, self._trajectory_opt[0, :])
+        )
+        self._traj_race_cl[-1, 0] = np.sum(spline_data_opt[:, 0])  # set correct length
+
+        # validate racetrack
+        self._preprocessed_dto.open_racetrack()
+        self._bound1, self._bound2 = check_traj(
+              reftrack=self._preprocessed_dto,
+              reftrack_normvec_normalized=self._normvec_normalized_interp,
+              length_veh=self._config.computation_config.general_config.vehicle_config.length,
+              width_veh=self._config.computation_config.general_config.vehicle_config.width,
+              debug=self._config.execution_config.debug_config.debug,
+              trajectory=self._trajectory_opt,
+              ggv=self._ggv,
+              ax_max_machines=self._engine_constraints,
+              v_max=self._config.computation_config.general_config.vehicle_config.v_max,
+              curvlim=self._config.computation_config.general_config.vehicle_config.curvature_limit,
+              mass_veh=self._config.computation_config.general_config.vehicle_config.mass,
+              dragcoeff=self._config.computation_config.general_config.vehicle_config.drag_coefficient
+        )
+        self._preprocessed_dto.close_racetrack()
+
+        # create reaceline
+        self._race_line: RaceLine = RaceLineFactory().generate_raceline(
+            length_per_point=self._s_points_opt_interp,
+            points=self._raceline_interp,
+            velocity_long_per_point=self._vx_profile_opt,
+            acceleration_long_per_point=self._ax_profile_opt,
+            curvature_per_point=self._kappa_opt,
+            heading_per_point=self._kappa_opt,
+            closed=True
+        )
+
+    def _compute_velocity_information(self) -> None:
         """
         Generates velocity information
         """
@@ -173,20 +256,20 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
 
         self._logger.info("Estimated laptime: %.2fs" % self._t_profile_cl[-1])
 
-    def _generate_positional_information(self) -> None:
+    def _compute_positional_information(self) -> None:
         """
-        Generates positional information of raceline.
+        Computes positional information of raceline.
         """
-        self._dto.open_racetrack()
+        self._preprocessed_dto.open_racetrack()
         self._raceline_interp, self._a_opt, self._coeffs_x_opt, self._coeffs_y_opt, \
             self._spline_inds_opt_interp, self._t_vals_opt_interp, self._s_points_opt_interp, \
             self._spline_lengths_opt, self._el_lengths_opt_interp = create_raceline(
-                refline=self._dto.to_2d_np_array(),
+                refline=self._preprocessed_dto.to_2d_np_array(),
                 normvectors=self._normvec_normalized_interp,
                 alpha=self._alpha_opt,
                 stepsize_interp=self._config.computation_config.general_config.stepsize_config.stepsize_interp_after_opt
             )
-        self._dto.close_racetrack()
+        self._preprocessed_dto.close_racetrack()
 
         self._psi_vel_opt, self._kappa_opt = calc_head_curv_an(
             coeffs_x=self._coeffs_x_opt,
@@ -200,7 +283,7 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
         Call optimization problem
         """
         self._alpha_opt, self._maximum_curvature_error = opt_min_curv(
-            reftrack=self._dto,
+            reftrack=self._preprocessed_dto,
             normvectors=self._normvec_normalized_interp,
             A=self._a_interp,
             kappa_bound=self._config.computation_config.general_config.vehicle_config.curvature_limit,
@@ -239,20 +322,62 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
             normal_crossing_horizon=10
         )
 
-
         # inflate track
         if self._config.execution_config.import_config.min_track_width is not None:
-            inflated_track: DtoFTM = WidthInflationLayer().inflate_width(
+            preprocessed_dto: DtoFTM = WidthInflationLayer().inflate_width(
                 dto_racetrack=spline_track,
                 mininmum_track_width=self._config.execution_config.import_config.min_track_width,
                 return_new_instance=False
             )
         else:
-            inflated_track: DtoFTM = spline_track
+            preprocessed_dto: DtoFTM = spline_track
 
         # set preprocessing values
-        self._inflated_track: DtoFTM = inflated_track
+        self._preprocessed_dto: DtoFTM = preprocessed_dto
         self._normvec_normalized_interp: np.ndarray = normvec_normalized_interp
         self._a_interp: np.ndarray = a_interp
         self._coeffs_x_interp: np.ndarray = coeffs_x_interp
         self._coeffs_y_interp: np.ndarray = coeffs_y_interp
+
+    def _reset_private_planning_members(self) -> None:
+        """
+        Resets all private members so missmatches are avoided
+        """
+        self._logger.info("Resetting planning")
+
+        # Preprocessing
+        self._preprocessed_dto: DtoFTM = None
+        self._normvec_normalized_interp: np.ndarray = None
+        self._a_interp: np.ndarray = None
+        self._coeffs_x_interp: np.ndarray = None
+        self._coeffs_y_interp: np.ndarray = None
+
+        # optimization
+        self._alpha_opt: np.ndarray = None
+        self._maximum_curvature_error: float = None
+
+        # positional raceline calculation
+        self._raceline_interp: np.ndarray = None
+        self._a_opt: np.ndarray = None
+        self._coeffs_x_opt: np.ndarray = None
+        self._coeffs_y_opt: np.ndarray = None
+        self._spline_inds_opt_interp: np.ndarray = None
+        self._t_vals_opt_interp: np.ndarray = None
+        self._s_points_opt_interp: np.ndarray = None
+        self._spline_lengths_opt: np.ndarray = None
+        self._el_lengths_opt_interp: np.ndarray = None
+        self._psi_vel_opt: float = None
+        self._kappa_opt: float = None
+
+        # velocity information
+        self._vx_profile_opt: np.ndarray = None
+        self._vx_profile_opt_cl: np.ndarray = None
+        self._ax_profile_opt: np.ndarray = None
+        self._t_profile_cl: np.ndarray = None
+
+        # trajectory generation
+        self._trajectory_opt: np.ndarray = None
+        self.traj_race_cl: np.ndarray = None
+
+        # raceline
+        self._race_line: RaceLine = None

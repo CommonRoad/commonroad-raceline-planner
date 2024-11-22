@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 
 from commonroad_raceline_planner.ractetrack import DtoFTM
@@ -8,27 +10,24 @@ from commonroad_raceline_planner.util.track_processing import (
 )
 
 
-def check_traj(reftrack: DtoFTM,
-               reftrack_normvec_normalized: np.ndarray,
-               trajectory: np.ndarray,
-               ggv: np.ndarray,
-               ax_max_machines: np.ndarray,
-               v_max: float,
-               length_veh: float,
-               width_veh: float,
-               debug: bool,
-               dragcoeff: float,
-               mass_veh: float,
-               curvlim: float) -> tuple:
+def check_traj(
+       reftrack: DtoFTM,
+       reftrack_normvec_normalized: np.ndarray,
+       trajectory: np.ndarray,
+       ggv: np.ndarray,
+       ax_max_machines: np.ndarray,
+       v_max: float,
+       length_veh: float,
+       width_veh: float,
+       debug: bool,
+       dragcoeff: float,
+       mass_veh: float,
+       curvlim: float
+) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Created by:
-    Alexander Heilmeier
-
-    Documentation:
     This function checks the generated trajectory in regards of minimum distance to the boundaries and maximum
     curvature and accelerations.
 
-    Inputs:
     reftrack:           track [x_m, y_m, w_tr_right_m, w_tr_left_m]
     reftrack_normvec_normalized: normalized normal vectors on the reference line [x_m, y_m]
     trajectory:         trajectory to be checked [s_m, x_m, y_m, psi_rad, kappa_radpm, vx_mps, ax_mps2]

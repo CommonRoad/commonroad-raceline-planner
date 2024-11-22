@@ -1,19 +1,16 @@
-import os
 from typing import Union
-
 from pathlib import Path
 
-from commonroad_raceline_planner.configuration.ftm_config.computation_config import ComputationConfigFactory
 from commonroad_raceline_planner.configuration.ftm_config.ftm_config import FTMConfig, FTMConfigFactory
 from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
 # own package
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
 from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import MinimumCurvaturePlanner
-from commonroad_raceline_planner.ractetrack import DtoFTMFactory
-from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_ggv_diagram
-from commonroad_raceline_planner.configuration.ftm_config.execution_config import ExecutionConfig, ExecutionConfigFactory
+from commonroad_raceline_planner.raceline import RaceLine
 
 from commonroad.common.file_reader import CommonRoadFileReader
+
+from commonroad_raceline_planner.util.visualization.result_plots import plot_cr_results
 
 
 def main(
@@ -33,20 +30,22 @@ def main(
     )
 
     # import race track
-    race_track_csv = RaceTrackFactory().generate_racetrack_from_csv(
-        file_path=ftm_config.execution_config.filepath_config.track_file,
-        vehicle_width=ftm_config.computation_config.general_config.vehicle_config.width
-    )
     race_track = RaceTrackFactory().generate_racetrack_from_cr_scenario(
         lanelet_network=scenario.lanelet_network,
         vehicle_width=ftm_config.computation_config.general_config.vehicle_config.width
     )
 
-    # instantiate planner
+    # plan
     mcp = MinimumCurvaturePlanner(
         config=ftm_config, race_track=race_track
     )
-    mcp.plan()
+    raceline: RaceLine = mcp.plan()
+
+    plot_cr_results(
+        race_line=raceline,
+        lanelet_network=scenario.lanelet_network,
+        planning_problem=planning_problem
+    )
 
 
 if __name__ == "__main__":
