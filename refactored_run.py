@@ -9,6 +9,7 @@ from commonroad_raceline_planner.configuration.ftm_config.ftm_config import FTMC
 from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
 from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import MinimumCurvaturePlanner
+from commonroad_raceline_planner.planner.ftm_planner.ftm_sp_planner import ShortestPathPlanner
 from commonroad_raceline_planner.raceline import RaceLine
 from commonroad_raceline_planner.util.visualization.result_plots import plot_cr_results
 
@@ -36,10 +37,13 @@ def main(
     )
 
     # plan
-    mcp = MinimumCurvaturePlanner(
+    #mcp = MinimumCurvaturePlanner(
+    #    config=ftm_config, race_track=race_track
+    #)
+    spp = ShortestPathPlanner(
         config=ftm_config, race_track=race_track
     )
-    raceline: RaceLine = mcp.plan()
+    raceline: RaceLine = spp.plan()
 
     # export data
     raceline.export_trajectory_to_csv_file(

@@ -65,30 +65,27 @@ class OptimizationConfigFactory(BaseConfigFactory):
         opt_min_curvature_config: Union[OptMinimumCurvatureConfig, None] = None
 
         # transform to sub-data classes
-        if optimization_type == OptimizationType.SHORTEST_PATH:
-            conf = json.loads(
-                self._parser.get(
-                    section='OPTIMIZATION_OPTIONS',
-                    option='optim_opts_shortest_path'
-                )
+        conf = json.loads(
+            self._parser.get(
+                section='OPTIMIZATION_OPTIONS',
+                option='optim_opts_shortest_path'
             )
-            opt_shortest_path_config = OptShortestPathConfig(
-                vehicle_width_opt=conf["width_opt"]
+        )
+        opt_shortest_path_config = OptShortestPathConfig(
+            vehicle_width_opt=conf["width_opt"]
+        )
+        conf = json.loads(
+            self._parser.get(
+                section='OPTIMIZATION_OPTIONS',
+                option='optim_opts_mincurv'
             )
-        elif optimization_type == OptimizationType.MINIMUM_CURVATURE:
-            conf = json.loads(
-                self._parser.get(
-                    section='OPTIMIZATION_OPTIONS',
-                    option='optim_opts_mincurv'
-                )
-            )
-            opt_min_curvature_config = OptMinimumCurvatureConfig(
-                vehicle_width_opt=conf["width_opt"],
-                min_iterations=conf["iqp_iters_min"],
-                allowed_curvature_error=conf["iqp_curverror_allowed"]
-            )
-        else:
-            raise ValueError(f"Optimization type {optimization_type} not a valid option.")
+        )
+        opt_min_curvature_config = OptMinimumCurvatureConfig(
+            vehicle_width_opt=conf["width_opt"],
+            min_iterations=conf["iqp_iters_min"],
+            allowed_curvature_error=conf["iqp_curverror_allowed"]
+        )
+
 
         return OptimizationConfig(
             opt_shortest_path_config=opt_shortest_path_config,

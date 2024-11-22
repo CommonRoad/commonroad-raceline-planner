@@ -125,7 +125,7 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
     @property
     def computed_race_line(self) -> Union[RaceLine, None]:
         """
-        :return: computed race line or none of not computed
+        :return: computed race line or none if not computed
         """
         return self._race_line
 
@@ -155,7 +155,6 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
         Runs raceline planner
         :return: cr raceline object
         """
-        # preprocessing
         self._logger.info(".. preprocessing racetrack")
         self._preprocess_track()
         self._logger.info(".. optimization problem")
