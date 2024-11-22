@@ -1,15 +1,15 @@
 from typing import Union
 from pathlib import Path
 
+# commonroad
+from commonroad.common.file_reader import CommonRoadFileReader
+
+# own package
 from commonroad_raceline_planner.configuration.ftm_config.ftm_config import FTMConfig, FTMConfigFactory
 from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
-# own package
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
 from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import MinimumCurvaturePlanner
 from commonroad_raceline_planner.raceline import RaceLine
-
-from commonroad.common.file_reader import CommonRoadFileReader
-
 from commonroad_raceline_planner.util.visualization.result_plots import plot_cr_results
 
 
@@ -40,6 +40,12 @@ def main(
         config=ftm_config, race_track=race_track
     )
     raceline: RaceLine = mcp.plan()
+
+    # export data
+    raceline.export_trajectory_to_csv_file(
+        export_path=ftm_config.execution_config.filepath_config.traj_race_export,
+        ggv_file_path=ftm_config.execution_config.filepath_config.ggv_file
+    )
 
     plot_cr_results(
         race_line=raceline,

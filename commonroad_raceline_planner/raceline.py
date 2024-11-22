@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 import warnings
+from pathlib import Path
 
 import numpy as np
 
+# own code
+from commonroad_raceline_planner.util.io import export_traj_race
+
 # typing
 from typing import Union
-
-from shapely.creation import points
-
-from commonroad_raceline_planner.ractetrack import DtoFTM
 
 
 @dataclass
@@ -30,6 +30,25 @@ class RaceLine:
         self.num_points = self.points.shape[0]
         self.sanity = self.sanity_check()
 
+    def to_7d_np_array(self) -> np.ndarray:
+        """
+        Convert raceline to np.ndarray
+        :return: (num_point, 7) ndarray.
+        np.ndarray(
+        length_per_point, points, heading_per_point, curvature_per_point, velocity_long_per_point, acceleration_long_per_point
+        )
+        """
+        return np.column_stack(
+            (
+               self.length_per_point,
+               self.points,
+               self.heading_per_point,
+               self.curvature_per_point,
+               self.velocity_long_per_point,
+               self.acceleration_long_per_point
+            )
+        )
+
     def sanity_check(self) -> bool:
         """
         Sanity check fo racline
@@ -39,7 +58,7 @@ class RaceLine:
         if(
             not
             self.points.shape[0]
-            == self.length_per_point[0]
+            == self.length_per_point.shape[0]
             == self.velocity_long_per_point.shape[0]
             == self.acceleration_long_per_point.shape[0]
             == self.curvature_per_point.shape[0]
@@ -47,13 +66,13 @@ class RaceLine:
             == self.num_points
         ):
             warnings.warn(
-                f"raceline has mismatching length of data"
-                f"points={self.points.shape[0]}"
-                f"num_length_per_point={self.length_per_point[0]}"
-                f"num_acceleration_long_per_point={self.acceleration_long_per_point.shape[0]}"
-                f"num_curvature_per_point={self.curvature_per_point.shape[0]}"
-                f"num_heading_per_point={self.heading_per_point.shape[0]}"
-                f"num_points={self.num_points}"
+                f"raceline has mismatching length of data: \n "
+                f"points={self.points.shape[0]}  \n"
+                f"num_length_per_point={self.length_per_point.shape[0]}  \n"
+                f"num_acceleration_long_per_point={self.acceleration_long_per_point.shape[0]}  \n"
+                f"num_curvature_per_point={self.curvature_per_point.shape[0]}  \n"
+                f"num_heading_per_point={self.heading_per_point.shape[0]}  \n"
+                f"num_points={self.num_points}  \n"
             )
             sanity = False
 
@@ -63,7 +82,6 @@ class RaceLine:
         """
         Close raceline
         """
-        # TODO: implement
         self.points = np.hstack((self.points, self.points[0]))
         self.length_per_point = np.hstack((self.length_per_point, self.length_per_point[0]))
         self.velocity_long_per_point = np.hstack((self.velocity_long_per_point, self.velocity_long_per_point[0]))
@@ -73,6 +91,22 @@ class RaceLine:
         self.num_points = self.points.shape[0]
         self.sanity = self.sanity_check()
 
+    def export_trajectory_to_csv_file(
+            self,
+            export_path: Union[Path, str],
+            ggv_file_path: Union[Path, str]
+    ) -> None:
+        """
+        Export trajectory to csv file.
+        :param export_path:
+        :param ggv_file_path:
+        """
+        export_traj_race(
+            traj_race_export=export_path,
+            ggv_file=ggv_file_path,
+            traj_race=self.to_7d_np_array()
+        )
+        print(f'Exported trajectory to {export_path}')
 
 class RaceLineFactory:
     """
