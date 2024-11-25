@@ -9,6 +9,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.lanelet import LaneletNetwork
+
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_normal_vectors import calc_normal_vectors
 from commonroad_raceline_planner.raceline import RaceLine
 
 # commonroad
@@ -237,6 +239,7 @@ def obtain_plot_limits_from_reference_path(
     y_max = max(reference_path[:, 1])
 
     plot_limits = [x_min - margin, x_max + margin, y_min - margin, y_max + margin]
+
     return plot_limits
 
 

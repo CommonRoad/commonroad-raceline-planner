@@ -50,7 +50,7 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
         )
 
         # logger
-        self._logger: Logger = Logger("FTM_MinCurv")
+        self._logger: Logger = Logger("FTM_Planner")
         self._logger.setLevel(logger_level)
 
         # import vehicle dynamics info

@@ -11,8 +11,7 @@ from commonroad_raceline_planner.ractetrack import  RaceTrackFactory
 from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import MinimumCurvaturePlanner
 from commonroad_raceline_planner.planner.ftm_planner.ftm_sp_planner import ShortestPathPlanner
 from commonroad_raceline_planner.raceline import RaceLine
-from commonroad_raceline_planner.util.visualization.visualize_on_racetrack import plot_trajectory_with_velocity, \
-    plot_trajectory_with_all_quantities
+from commonroad_raceline_planner.util.visualization.visualize_on_racetrack import plot_trajectory_with_all_quantities
 from commonroad_raceline_planner.util.visualization.visualize_over_arclength import plot_trajectory_over_arclength
 
 
