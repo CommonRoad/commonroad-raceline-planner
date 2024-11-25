@@ -4,22 +4,27 @@ import numpy as np
 
 # own code
 from commonroad_raceline_planner.configuration.ftm_config.ftm_config import FTMConfig
-from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
+from commonroad_raceline_planner.planner.ftm_planner.optimization.opt_min_curv import opt_min_curv
 from commonroad_raceline_planner.planner.base_planner import BaseRacelinePlanner
 from commonroad_raceline_planner.planner.ftm_planner.velenis_vel_profile import calc_vel_profile
 from commonroad_raceline_planner.raceline import RaceLine, RaceLineFactory
-from commonroad_raceline_planner.racetrack_layers.lin_interpol_layer import LinearInterpolationLayer
-from commonroad_raceline_planner.racetrack_layers.spline_approx_layer import SplineApproxLayer
-from commonroad_raceline_planner.racetrack_layers.width_inflation_layer import WidthInflationLayer
-from commonroad_raceline_planner.ractetrack import RaceTrack, DtoFTM, DtoFTMFactory
-from commonroad_raceline_planner.util.track_processing import compute_normals_and_check_crosing
-from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_ax_profile import calc_ax_profile
-from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_head_curv_an import calc_head_curv_an
-from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_t_profile import calc_t_profile
-from commonroad_raceline_planner.util.trajectory_planning_helpers.create_raceline import create_raceline
-from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_ggv_diagram, \
+from commonroad_raceline_planner.planner.ftm_planner.track_processing.lin_interpol_layer import LinearInterpolationLayer
+from commonroad_raceline_planner.planner.ftm_planner.track_processing.spline_approx_layer import SplineApproxLayer
+from commonroad_raceline_planner.planner.ftm_planner.track_processing.width_inflation_layer import WidthInflationLayer
+from commonroad_raceline_planner.ractetrack import RaceTrack
+from commonroad_raceline_planner.planner.ftm_planner.ftm_dto import DtoFTM, DtoFTMFactory
+from commonroad_raceline_planner.planner.ftm_planner.track_processing.track_processing import (
+    compute_normals_and_check_crosing
+)
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_ax_profile import calc_ax_profile
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_head_curv_an import calc_head_curv_an
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_t_profile import calc_t_profile
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.create_raceline import create_raceline
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.import_veh_dyn_info import (
+    import_ggv_diagram,
     import_engine_constraints
-from commonroad_raceline_planner.util.validation import check_traj
+)
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.validation import check_traj
 
 
 # typing
@@ -216,7 +221,7 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
             velocity_long_per_point=self._vx_profile_opt,
             acceleration_long_per_point=self._ax_profile_opt,
             curvature_per_point=self._kappa_opt,
-            heading_per_point=self._kappa_opt,
+            heading_per_point=self._psi_vel_opt,
             closed=True
         )
 

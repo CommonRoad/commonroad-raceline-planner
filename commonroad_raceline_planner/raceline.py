@@ -108,6 +108,7 @@ class RaceLine:
         )
         print(f'Exported trajectory to {export_path}')
 
+
 class RaceLineFactory:
     """
     Generates raceline

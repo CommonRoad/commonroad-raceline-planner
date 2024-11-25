@@ -7,11 +7,13 @@ from commonroad.common.file_reader import CommonRoadFileReader
 # own package
 from commonroad_raceline_planner.configuration.ftm_config.ftm_config import FTMConfig, FTMConfigFactory
 from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
-from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
+from commonroad_raceline_planner.ractetrack import  RaceTrackFactory
 from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import MinimumCurvaturePlanner
 from commonroad_raceline_planner.planner.ftm_planner.ftm_sp_planner import ShortestPathPlanner
 from commonroad_raceline_planner.raceline import RaceLine
-from commonroad_raceline_planner.util.visualization.result_plots import plot_cr_results
+from commonroad_raceline_planner.util.visualization.visualize_on_racetrack import plot_trajectory_with_velocity, \
+    plot_trajectory_with_all_quantities
+from commonroad_raceline_planner.util.visualization.visualize_over_arclength import plot_trajectory_over_arclength
 
 
 def main(
@@ -37,15 +39,19 @@ def main(
     )
 
     # plan
-    #mcp = MinimumCurvaturePlanner(
-    #    config=ftm_config, race_track=race_track
-    #)
-    #raceline: RaceLine = mcp.plan()
+    if ftm_config.execution_config.optimization_type == OptimizationType.MINIMUM_CURVATURE:
+        mcp = MinimumCurvaturePlanner(
+            config=ftm_config, race_track=race_track
+        )
+        raceline: RaceLine = mcp.plan()
 
-    spp = ShortestPathPlanner(
-        config=ftm_config, race_track=race_track
-    )
-    raceline: RaceLine = spp.plan()
+    elif ftm_config.execution_config.optimization_type == OptimizationType.SHORTEST_PATH:
+        spp = ShortestPathPlanner(
+            config=ftm_config, race_track=race_track
+        )
+        raceline: RaceLine = spp.plan()
+    else:
+        raise NotImplementedError(f'Planner not implemented')
 
     # export data
     raceline.export_trajectory_to_csv_file(
@@ -53,10 +59,14 @@ def main(
         ggv_file_path=ftm_config.execution_config.filepath_config.ggv_file
     )
 
-    plot_cr_results(
+    plot_trajectory_with_all_quantities(
         race_line=raceline,
         lanelet_network=scenario.lanelet_network,
         planning_problem=planning_problem
+    )
+
+    plot_trajectory_over_arclength(
+        race_line=raceline
     )
 
 

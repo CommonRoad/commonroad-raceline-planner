@@ -1,10 +1,7 @@
 import json
 from dataclasses import dataclass
 from pathlib import Path
-
-# TODO: to be deleted
 import os
-from commonroad_raceline_planner.util.aziz_helpers.helper_functions import add_to_dict
 import configparser
 
 
@@ -216,3 +213,10 @@ def setup_vehicle_parameters(config):
                     os.path.join(file_paths["module"], "inputs", "veh_dyn_info", pars["ax_max_machines_file"]))
 
     return pars
+
+def add_to_dict(dictionary, key, value) -> None:
+    """
+    add value to dict
+    """
+    dictionary[key] = value
+

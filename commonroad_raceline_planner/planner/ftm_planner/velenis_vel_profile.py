@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from commonroad_raceline_planner.util.trajectory_planning_helpers.conv_filt import conv_filt
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.conv_filt import conv_filt
 
 
 def calc_vel_profile(ax_max_machines: np.ndarray,

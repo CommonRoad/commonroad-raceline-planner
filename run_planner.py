@@ -12,19 +12,19 @@ from commonroad_raceline_planner.configuration.ftm_config.computation_config imp
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
 from commonroad_raceline_planner.raceline import RaceLine, RaceLineFactory
 from commonroad_raceline_planner.ractetrack import DtoFTM, DtoFTMFactory
-from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_ggv_diagram, \
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.import_veh_dyn_info import import_ggv_diagram, \
     import_engine_constraints
-from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
-from commonroad_raceline_planner.optimization.opt_shortest_path import opt_shortest_path
-from commonroad_raceline_planner.util.trajectory_planning_helpers.create_raceline import create_raceline
+from commonroad_raceline_planner.planner.ftm_planner.optimization.opt_min_curv import opt_min_curv
+from commonroad_raceline_planner.planner.ftm_planner.optimization import opt_shortest_path
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning import create_raceline
 from commonroad_raceline_planner.planner.ftm_planner.velenis_vel_profile import calc_vel_profile
-from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_t_profile import calc_t_profile
-from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_head_curv_an import calc_head_curv_an
-from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_ax_profile import calc_ax_profile
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_t_profile import calc_t_profile
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_head_curv_an import calc_head_curv_an
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_ax_profile import calc_ax_profile
 from commonroad_raceline_planner.util.common import progressbar as tph_progressbar
-from commonroad_raceline_planner.util.visualization.result_plots import result_plots, plot_cr_results
-from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines import calc_splines
-from commonroad_raceline_planner.util.validation import check_traj
+from commonroad_raceline_planner.util.visualization.visualize_on_racetrack import result_plots, plot_trajectory_with_velocity
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning import calc_splines
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.validation import check_traj
 from commonroad_raceline_planner.configuration.ftm_config.execution_config import ExecutionConfig, ExecutionConfigFactory
 from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
 
@@ -35,7 +35,7 @@ from commonroad_raceline_planner.util.io import (
     export_traj_race,
 )
 
-from commonroad_raceline_planner.util.track_processing import preprocess_track
+from commonroad_raceline_planner.planner.ftm_planner.track_processing.track_processing import preprocess_track
 
 
 
@@ -426,7 +426,7 @@ class RaceLinePlanner:
         )
 
         if self.race_track.lanelet_network is not None:
-            plot_cr_results(
+            plot_trajectory_with_velocity(
                 race_line=self.race_line,
                 lanelet_network=self.scenario.lanelet_network,
                 planning_problem=self.planning_problem

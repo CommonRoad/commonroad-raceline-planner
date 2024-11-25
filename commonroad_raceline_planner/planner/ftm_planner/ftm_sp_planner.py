@@ -1,4 +1,4 @@
-from commonroad_raceline_planner.optimization.opt_shortest_path import opt_shortest_path
+from commonroad_raceline_planner.planner.ftm_planner.optimization.opt_shortest_path import opt_shortest_path
 from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import MinimumCurvaturePlanner
 
 
