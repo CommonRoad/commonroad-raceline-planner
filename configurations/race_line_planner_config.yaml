@@ -54,4 +54,5 @@ file_paths:
 #  tpamap: "inputs/frictionmaps/rounded_rectangle_tpamap.csv"
 #  tpadata: "inputs/frictionmaps/rounded_rectangle_tpadata.json"
 
-opt_type: "mincurv"
+#opt_type: "mincurv"
+opt_type: "shortest_path"

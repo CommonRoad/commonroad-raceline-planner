@@ -40,6 +40,8 @@ def main(
     #mcp = MinimumCurvaturePlanner(
     #    config=ftm_config, race_track=race_track
     #)
+    #raceline: RaceLine = mcp.plan()
+
     spp = ShortestPathPlanner(
         config=ftm_config, race_track=race_track
     )

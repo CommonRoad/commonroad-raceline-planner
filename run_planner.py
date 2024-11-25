@@ -12,7 +12,8 @@ from commonroad_raceline_planner.configuration.ftm_config.computation_config imp
 from commonroad_raceline_planner.dataloader.racetrack_factory import RaceTrackFactory
 from commonroad_raceline_planner.raceline import RaceLine, RaceLineFactory
 from commonroad_raceline_planner.ractetrack import DtoFTM, DtoFTMFactory
-from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_ggv_diagram
+from commonroad_raceline_planner.util.trajectory_planning_helpers.import_veh_dyn_info import import_ggv_diagram, \
+    import_engine_constraints
 from commonroad_raceline_planner.optimization.opt_min_curv import opt_min_curv
 from commonroad_raceline_planner.optimization.opt_shortest_path import opt_shortest_path
 from commonroad_raceline_planner.util.trajectory_planning_helpers.create_raceline import create_raceline
@@ -95,8 +96,10 @@ class RaceLinePlanner:
                 self._execution_config.optimization_type == OptimizationType.MINIMUM_LAPTIME
                 and not self._execution_config.mintime_config.recalc_vel_profile_by_tph
         ):
-            self.ggv, self.ax_max_machines = import_ggv_diagram(
+            self.ggv = import_ggv_diagram(
                 ggv_import_path=self._execution_config.filepath_config.ggv_file,
+            )
+            self.ax_max_machines = import_engine_constraints(
                 ax_max_machines_import_path=self._execution_config.filepath_config.ax_max_machines_file
             )
         else:
@@ -130,6 +133,7 @@ class RaceLinePlanner:
 
         # Shortest path optimization
         if self._execution_config.optimization_type == OptimizationType.SHORTEST_PATH:
+            print(f'shortest path')
             self.alpha_opt = opt_shortest_path(
                 reftrack=self.spline_track,
                 normvectors=self.normvec_normalized_interp,
@@ -139,6 +143,7 @@ class RaceLinePlanner:
 
         # Minimum curvature optimization
         elif self._execution_config.optimization_type == OptimizationType.MINIMUM_CURVATURE:
+            print(f'minimum curvature')
             self.alpha_opt, maximum_curvature_error = opt_min_curv(
                 reftrack=self.spline_track,
                 normvectors=self.normvec_normalized_interp,
@@ -420,7 +425,7 @@ class RaceLinePlanner:
             trajectory=self.trajectory_opt
         )
 
-        if self.race_track.cr_scenario is not None:
+        if self.race_track.lanelet_network is not None:
             plot_cr_results(
                 race_line=self.race_line,
                 lanelet_network=self.scenario.lanelet_network,

@@ -14,7 +14,7 @@ class ShortestPathPlanner(MinimumCurvaturePlanner):
         """
         Call optimization problem
         """
-        self.alpha_opt = opt_shortest_path(
+        self._alpha_opt = opt_shortest_path(
             reftrack=self._preprocessed_dto,
             normvectors=self._normvec_normalized_interp,
             vehicle_width=

@@ -7,10 +7,12 @@ from commonroad_raceline_planner.util.trajectory_planning_helpers.calc_splines i
 
 
 
-def create_raceline(refline: np.ndarray,
-                    normvectors: np.ndarray,
-                    alpha: np.ndarray,
-                    stepsize_interp: float) -> Tuple[np.ndarray, np.ndarray, np.ndarray,np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def create_raceline(
+        refline: np.ndarray,
+        normvectors: np.ndarray,
+        alpha: np.ndarray,
+        stepsize_interp: float
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray,np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     This function includes the algorithm part connected to the interpolation of the raceline after the optimization.
 
