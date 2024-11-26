@@ -80,7 +80,7 @@ class RaceLinePlanner:
         )
 
         # cr-io
-        cr_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/DEU_Hhr-1_1.xml"
+        cr_path = "/scenarios/tracks/XML_maps/DEU_Hhr-1_1.xml"
         self.scenario, planning_problem_set = CommonRoadFileReader(cr_path).open()
         self.planning_problem = list(planning_problem_set.planning_problem_dict.values())[0]
         self.race_track = RaceTrackFactory().generate_racetrack_from_cr_scenario(

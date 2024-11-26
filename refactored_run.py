@@ -19,7 +19,6 @@ from commonroad_raceline_planner.util.visualization.visualize_over_arclength imp
 def main(
         cr_path: Union[str, Path],
         ini_path: Union[str, Path],
-        veh_params_file: Union[str, Path],
         ggv_file: Union[str, Path],
         ax_max_machines_file: Union[str, Path],
         traj_race_export: Union[str, Path],
@@ -34,7 +33,6 @@ def main(
     # generate configs
     ftm_config: FTMConfig = FTMConfigFactory().generate_from_ini(
         path_to_ini=ini_path,
-        veh_params_file=veh_params_file,
         ggv_file=ggv_file,
         ax_max_machines_file=ax_max_machines_file,
         optimization_type=OptimizationType.MINIMUM_CURVATURE,
@@ -81,18 +79,16 @@ def main(
 
 
 if __name__ == "__main__":
-    cr_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/ZAM_realrounded-1_1_T-1.xml"
-    ini_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/params/racecar.ini"
-    veh_params_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/params/racecar.ini"
-    ggv_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/veh_dyn_info/ggv.csv"
-    ax_max_machines_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/veh_dyn_info/ax_max_machines.csv"
+    cr_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/tracks/XML_maps/ZAM_realrounded-1_1_T-1.xml"
+    ini_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/params/racecar.ini"
+    ggv_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/veh_dyn_info/ggv.csv"
+    ax_max_machines_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/veh_dyn_info/ax_max_machines.csv"
     traj_race_export = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/outputs/traj_race_cl.csv"
     velocity_profile_export = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/outputs/velocity_profile.json"
     opt_type: OptimizationType = OptimizationType.MINIMUM_CURVATURE
     main(
         cr_path=cr_path,
         ini_path=ini_path,
-        veh_params_file=veh_params_file,
         ggv_file=ggv_file,
         ax_max_machines_file=ax_max_machines_file,
         traj_race_export=traj_race_export,

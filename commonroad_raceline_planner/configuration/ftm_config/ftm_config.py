@@ -32,7 +32,6 @@ class FTMConfigFactory(BaseConfigFactory):
     @staticmethod
     def generate_from_ini(
         path_to_ini: Union[str, Path],
-        veh_params_file: Union[Path, str],
         ax_max_machines_file: Union[Path, str],
         ggv_file: Union[Path, str],
         min_track_width: Optional[float] = None,
@@ -42,7 +41,6 @@ class FTMConfigFactory(BaseConfigFactory):
         """
         Generates ftm config
         :param path_to_ini: path to .ini file
-        :param veh_params_file: path to vehicle params file
         :param ax_max_machines_file: path to engine constraints file
         :param ggv_file: path ggv file
         :param min_track_width: optional -> minimum track width to be considered
@@ -55,7 +53,7 @@ class FTMConfigFactory(BaseConfigFactory):
                 path_to_racecar_ini=path_to_ini,
             ),
             execution_config=ExecutionConfigFactory().generate_exec_config(
-                veh_params_file=veh_params_file,
+                veh_params_file=path_to_ini,
                 ax_max_machines_file=ax_max_machines_file,
                 ggv_file=ggv_file,
                 min_track_width=min_track_width,
