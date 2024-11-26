@@ -3,7 +3,7 @@ name = "commonroad-raceline-planner"
 version = "0.1.1"
 description = "CommonRoad Velocity Planner Toolbox"
 authors = ["Tobias Mascetta <tobias.mascetta@tum.de>", "Mohammed Aziz Bouziri <aziz.bouziri1@gmail.com>",
-    "Johannes Betz <betz@tum.de>, Alexander Heilmeier, Fabian Christ, Tim Stahl"]
+    "Johannes Betz <betz@tum.de>, Alexander Heilmeier, Leonhard Hermannsdorfer, Fabian Christ, Tim Stahl"]
 license = "BSD"
 readme = "README.md"
 keywords= ["autonomous", "automated", "vehicles", "driving", "motion", "planning", "racing"]

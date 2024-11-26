@@ -1,4 +1,6 @@
 from typing import Tuple
+import logging
+from venv import logger
 
 import numpy as np
 
@@ -51,6 +53,7 @@ def check_traj(
     # ------------------------------------------------------------------------------------------------------------------
     # CHECK VEHICLE EDGES FOR MINIMUM DISTANCE TO TRACK BOUNDARIES -----------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
+    logger = logging.getLogger("FTMPlanner.TrajCheck")
 
     # calculate boundaries and interpolate them to small stepsizes (currently linear interpolation)
     bound_r = reftrack.to_2d_np_array() + reftrack_normvec_normalized * np.expand_dims(
@@ -82,13 +85,13 @@ def check_traj(
 
     # warn if distance falls below a safety margin of 1.0 m
     if min_dist < 1.0:
-        print(
-            "WARNING: Minimum distance to boundaries is estimated to %.2fm. Keep in mind that the distance can also"
+        logger.warning(
+            "Minimum distance to boundaries is estimated to %.2fm. Keep in mind that the distance can also"
             " lie on the outside of the track!" % min_dist
         )
     elif debug:
-        print(
-            "INFO: Minimum distance to boundaries is estimated to %.2fm. Keep in mind that the distance can also lie"
+        logger.info(
+            "Minimum distance to boundaries is estimated to %.2fm. Keep in mind that the distance can also lie"
             " on the outside of the track!" % min_dist
         )
 
@@ -98,8 +101,8 @@ def check_traj(
 
     # check maximum (absolute) curvature
     if np.amax(np.abs(trajectory[:, 4])) > curvlim:
-        print(
-            "WARNING: Curvature limit is exceeded: %.3frad/m"
+        logger.warning(
+            "Curvature limit is exceeded: %.3frad/m"
             % np.amax(np.abs(trajectory[:, 4]))
         )
 
@@ -122,8 +125,8 @@ def check_traj(
         ay_profile = np.divide(np.power(trajectory[:, 5], 2), radii)
 
         if np.any(ay_profile > np.amax(ggv[:, 2]) + 0.1):
-            print(
-                "WARNING: Lateral ggv acceleration limit is exceeded: %.2fm/s2"
+            logger.warning(
+                "Lateral ggv acceleration limit is exceeded: %.2fm/s2"
                 % np.amax(ay_profile)
             )
 
@@ -132,14 +135,14 @@ def check_traj(
         ax_wo_drag = trajectory[:, 6] - ax_drag
 
         if np.any(ax_wo_drag > np.amax(ggv[:, 1]) + 0.1):
-            print(
-                "WARNING: Longitudinal ggv acceleration limit (positive) is exceeded: %.2fm/s2"
+            logger.warning(
+                "Longitudinal ggv acceleration limit (positive) is exceeded: %.2fm/s2"
                 % np.amax(ax_wo_drag)
             )
 
         if np.any(ax_wo_drag < np.amin(-ggv[:, 1]) - 0.1):
-            print(
-                "WARNING: Longitudinal ggv acceleration limit (negative) is exceeded: %.2fm/s2"
+            logger.warning(
+                "Longitudinal ggv acceleration limit (negative) is exceeded: %.2fm/s2"
                 % np.amin(ax_wo_drag)
             )
 
@@ -147,14 +150,14 @@ def check_traj(
         a_tot = np.sqrt(np.power(ax_wo_drag, 2) + np.power(ay_profile, 2))
 
         if np.any(a_tot > np.amax(ggv[:, 1:]) + 0.1):
-            print(
-                "WARNING: Total ggv acceleration limit is exceeded: %.2fm/s2"
+            logger.warning(
+                "Total ggv acceleration limit is exceeded: %.2fm/s2"
                 % np.amax(a_tot)
             )
 
     else:
-        print(
-            "WARNING: Since ggv-diagram was not given the according checks cannot be performed!"
+        logger.warning(
+            "Since ggv-diagram was not given the according checks cannot be performed!"
         )
 
     if ax_max_machines is not None:
@@ -163,8 +166,8 @@ def check_traj(
         ax_wo_drag = trajectory[:, 6] - ax_drag
 
         if np.any(ax_wo_drag > np.amax(ax_max_machines[:, 1]) + 0.1):
-            print(
-                "WARNING: Longitudinal acceleration machine limits are exceeded: %.2fm/s2"
+            logger.warning(
+                "Longitudinal acceleration machine limits are exceeded: %.2fm/s2"
                 % np.amax(ax_wo_drag)
             )
 
@@ -173,8 +176,8 @@ def check_traj(
     # ------------------------------------------------------------------------------------------------------------------
 
     if np.any(trajectory[:, 5] > v_max + 0.1):
-        print(
-            "WARNING: Maximum velocity of final trajectory exceeds the maximal velocity of the vehicle: %.2fm/s!"
+        logger.warning(
+            "Maximum velocity of final trajectory exceeds the maximal velocity of the vehicle: %.2fm/s!"
             % np.amax(trajectory[:, 5])
         )
 

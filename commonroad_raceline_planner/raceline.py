@@ -6,7 +6,7 @@ import numpy as np
 from scipy.spatial.kdtree import KDTree
 
 # own code
-from commonroad_raceline_planner.util.io import export_traj_race
+from commonroad_raceline_planner.utils.io import export_traj_race
 
 # typing
 from typing import Union, Tuple

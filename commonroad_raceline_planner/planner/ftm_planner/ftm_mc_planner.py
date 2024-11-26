@@ -21,7 +21,7 @@ from commonroad_raceline_planner.planner.ftm_planner.track_processing.spline_app
 from commonroad_raceline_planner.planner.ftm_planner.track_processing.width_inflation_layer import (
     WidthInflationLayer,
 )
-from commonroad_raceline_planner.ractetrack import RaceTrack
+from commonroad_raceline_planner.racetrack import RaceTrack
 from commonroad_raceline_planner.planner.ftm_planner.ftm_dto import (
     DtoFTM,
     DtoFTMFactory,
@@ -68,6 +68,7 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
         super().__init__(race_track=race_track, config=config)
 
         # logger
+        logging.basicConfig(level=logger_level)
         self._logger: Logger = logging.getLogger("FTMPlanner.MinCurv")
         self._logger.setLevel(logger_level)
 

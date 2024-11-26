@@ -12,7 +12,7 @@ from commonroad_raceline_planner.configuration.ftm_config.ftm_config import (
 from commonroad_raceline_planner.configuration.ftm_config.optimization_config import (
     OptimizationType,
 )
-from commonroad_raceline_planner.ractetrack import RaceTrackFactory
+from commonroad_raceline_planner.racetrack import RaceTrackFactory
 from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import (
     MinimumCurvaturePlanner,
 )
@@ -20,10 +20,10 @@ from commonroad_raceline_planner.planner.ftm_planner.ftm_sp_planner import (
     ShortestPathPlanner,
 )
 from commonroad_raceline_planner.raceline import RaceLine
-from commonroad_raceline_planner.util.visualization.visualize_on_racetrack import (
+from commonroad_raceline_planner.utils.visualization.visualize_on_racetrack import (
     plot_trajectory_with_all_quantities,
 )
-from commonroad_raceline_planner.util.visualization.visualize_over_arclength import (
+from commonroad_raceline_planner.utils.visualization.visualize_over_arclength import (
     plot_trajectory_over_arclength,
 )
 

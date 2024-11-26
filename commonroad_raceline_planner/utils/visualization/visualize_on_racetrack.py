@@ -68,7 +68,7 @@ def plot_param(
     # draw scenario and renderer
     renderer.render()
 
-    # plot legent before divider so they appear nice
+    # plot legend before divider so they appear nice
     plt.xlabel("East [m]")
     plt.ylabel("North [m]")
 

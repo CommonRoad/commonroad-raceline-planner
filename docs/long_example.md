@@ -1,3 +1,14 @@
+## Long Example
+This file shows the long example, so one level down from our raceline fast api
+
+## Resources 
+You can find the .ini and the ggv file [here](https://github.com/TUMFTM/global_racetrajectory_optimization/tree/master/inputs).
+
+
+
+### Example 1: Long Example
+
+```Python
 from typing import Union, Optional
 from pathlib import Path
 
@@ -8,7 +19,7 @@ from commonroad.planning.planning_problem import PlanningProblem
 # own package
 from commonroad_raceline_planner.configuration.ftm_config.ftm_config import FTMConfig, FTMConfigFactory
 from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
-from commonroad_raceline_planner.racetrack import  RaceTrackFactory
+from commonroad_raceline_planner.racetrack import RaceTrackFactory
 from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import MinimumCurvaturePlanner
 from commonroad_raceline_planner.planner.ftm_planner.ftm_sp_planner import ShortestPathPlanner
 from commonroad_raceline_planner.raceline import RaceLine
@@ -46,7 +57,6 @@ def main(
         vehicle_width=ftm_config.computation_config.general_config.vehicle_config.width
     )
 
-
     # plan
     if opt_type == OptimizationType.MINIMUM_CURVATURE:
         mcp = MinimumCurvaturePlanner(
@@ -81,12 +91,15 @@ def main(
 
 
 if __name__ == "__main__":
-    cr_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/tracks/XML_maps/DEU_Hhr-1_1.xml"
-    ini_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/params/racecar.ini"
-    ggv_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/veh_dyn_info/ggv.csv"
-    ax_max_machines_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/veh_dyn_info/ax_max_machines.csv"
-    traj_race_export = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/outputs/traj_race_cl.csv"
-    velocity_profile_export = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/outputs/velocity_profile.json"
+    cr_path = "PATH/TO/CR/FILE"
+    ini_path = "PATH/TO/.ini",
+    ggv_file = "PATH/TO/ggv",
+    ax_max_machines_file = "PATH/TO/ENGINECONSTRAINTS",
+    ini_path = "PATH/TO/.ini"
+    ggv_file = "PATH/TO/ggv"
+    ax_max_machines_file = "PATH/TO/ENGINECONSTRAINTS"
+    traj_race_export = "/PATH/TO/EXPORT/TRAJECTORY"
+    velocity_profile_export = "/PATH/TO/EXPORT/VELOCITY/PROFILE"
     opt_type: OptimizationType = OptimizationType.SHORTEST_PATH
     main(
         cr_path=cr_path,
@@ -97,3 +110,4 @@ if __name__ == "__main__":
         velocity_profile_export=velocity_profile_export,
         opt_type=opt_type,
     )
+```

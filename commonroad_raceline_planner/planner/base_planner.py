@@ -7,7 +7,7 @@ from commonroad_raceline_planner.raceline import RaceLine
 # typing
 from typing import Any
 
-from commonroad_raceline_planner.ractetrack import RaceTrack
+from commonroad_raceline_planner.racetrack import RaceTrack
 
 
 class BaseRacelinePlanner(ABC):

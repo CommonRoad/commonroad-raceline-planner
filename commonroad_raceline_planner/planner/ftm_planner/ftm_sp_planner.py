@@ -1,7 +1,7 @@
 import logging
 
 # own code base
-from commonroad_raceline_planner.ractetrack import RaceTrack
+from commonroad_raceline_planner.racetrack import RaceTrack
 from commonroad_raceline_planner.configuration.ftm_config.ftm_config import FTMConfig
 from commonroad_raceline_planner.planner.ftm_planner.optimization.opt_shortest_path import (
     opt_shortest_path,

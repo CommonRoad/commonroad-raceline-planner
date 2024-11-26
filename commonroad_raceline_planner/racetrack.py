@@ -9,8 +9,8 @@ from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.lanelet import LaneletNetwork, Lanelet
 
 # own code base
-from commonroad_raceline_planner.util.path_utils import calc_interpoint_length
-from commonroad_raceline_planner.util.exceptions import (
+from commonroad_raceline_planner.utils.path_utils import calc_interpoint_length
+from commonroad_raceline_planner.utils.exceptions import (
     TrackDataInvalidException,
 )
 

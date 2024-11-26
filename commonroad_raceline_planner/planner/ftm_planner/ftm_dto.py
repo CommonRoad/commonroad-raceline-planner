@@ -3,13 +3,13 @@ import numpy as np
 import warnings
 
 # commonroad
-from commonroad_raceline_planner.util.exceptions import (
+from commonroad_raceline_planner.utils.exceptions import (
     TrackDataInvalidException,
 )
 
 # own code base
-from commonroad_raceline_planner.ractetrack import RaceTrack
-from commonroad_raceline_planner.util.path_utils import calc_interpoint_length
+from commonroad_raceline_planner.racetrack import RaceTrack
+from commonroad_raceline_planner.utils.path_utils import calc_interpoint_length
 
 
 class DtoFTM:
