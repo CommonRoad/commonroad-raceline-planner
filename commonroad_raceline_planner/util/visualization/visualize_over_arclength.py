@@ -9,7 +9,7 @@ from typing import List
 def plot_trajectory_over_arclength(race_line: RaceLine) -> None:
     """
     plot raceline over arclength
-    :param race_line:
+    :param race_line: cr raceline
     """
     plt.title("velocity over arclength")
     plt.plot(race_line.length_per_point, race_line.velocity_long_per_point)

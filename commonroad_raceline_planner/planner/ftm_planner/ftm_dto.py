@@ -31,7 +31,6 @@ class DtoFTM:
     ) -> None:
         """
         Data Transfer Object (flow object) of a racetrack
-        :param race_track:
         """
         self.original_track: RaceTrack = race_track
 

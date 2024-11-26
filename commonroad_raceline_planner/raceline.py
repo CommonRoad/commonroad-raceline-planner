@@ -15,7 +15,7 @@ from typing import Union, Tuple
 @dataclass
 class RaceLine:
     """
-    Raceline
+    A cr raceline object containing information on the generated raceline
     """
 
     points: np.ndarray
@@ -64,8 +64,8 @@ class RaceLine:
     def get_closest_point(self, point: np.ndarray) -> Tuple[int, np.ndarray]:
         """
         Get idx and coords of closest point on raceline
-        :param point:
-        :return:
+        :param point: closest point on raceline
+        :return: Tuple (idx, coordinates)
         """
         idx: int = self.get_closest_idx(point)
         return (idx, self.points[idx])
@@ -130,7 +130,7 @@ class RaceLine:
 
     def close_raceline(self) -> None:
         """
-        Close raceline
+        Closes raceline by adding the first point to the end
         """
         self.points = np.hstack((self.points, self.points[0]))
         self.length_per_point = np.hstack(
@@ -156,8 +156,8 @@ class RaceLine:
     ) -> None:
         """
         Export trajectory to csv file.
-        :param export_path:
-        :param ggv_file_path:
+        :param export_path: path to which the trajectory should be safed as csv
+        :param ggv_file_path: ggv file path
         """
         export_traj_race(
             traj_race_export=export_path,
@@ -184,13 +184,13 @@ class RaceLineFactory:
     ) -> RaceLine:
         """
         Generates race line
-        :param points:
-        :param length_per_point:
-        :param velocity_long_per_point:
-        :param acceleration_long_per_point:
-        :param curvature_per_point:
-        :param heading_per_point:
-        :return:
+        :param points: (n,2) x,y points
+        :param length_per_point: arc length per point (accumulated)
+        :param velocity_long_per_point: velocity per point
+        :param acceleration_long_per_point: acceleration per point
+        :param curvature_per_point: curvature per point
+        :param heading_per_point: heading per point
+        :return: cr raceline
         """
         return RaceLine(
             points=points,

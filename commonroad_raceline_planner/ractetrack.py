@@ -21,7 +21,7 @@ from typing import Union, Optional, List
 @dataclass
 class RaceTrack:
     """
-    Race track from centerline with left and right bounds
+    Race track with centerline, left bounds and right bounds
     """
 
     x_m: np.ndarray
@@ -48,7 +48,6 @@ class RaceTrack:
         """
         Sanity check for racetrack data class
         """
-
         # check same dimensions
         if (
             not self.x_m.shape[0]
@@ -83,108 +82,23 @@ class RaceTrackFactory:
     """
 
     @staticmethod
-    def _generate_racetrack_from_csv(
-        file_path: str,
-        vehicle_width: float,
-        num_laps: int = 1,
-        set_new_start: bool = False,
-        new_start: Optional[np.ndarray] = None,
-        vehicle_safe_margin_m: float = 0.5,
-    ) -> RaceTrack:
-        """
-        FOR NEXT RELEASE: CURRENTLY NOT WORKING
-        Import racetrack from csv
-
-        Inputs:
-        file_path:      file path of track.csv containing [x_m,y_m,w_tr_right_m,w_tr_left_m]
-        imp_opts:       import options showing if a new starting point should be set or if the direction should be reversed
-        width_veh:      vehicle width required to check against track width
-
-        Outputs:
-        race_track:   imported track [x_m, y_m, w_tr_right_m, w_tr_left_m]
-        """
-
-        raise NotImplementedError(
-            "currently not implemented since no direct conversionto commonroad in cr designer"
-        )
-
-        # load data from csv file
-        csv_data_temp = np.loadtxt(file_path, comments="#", delimiter=",")
-
-        # get coords and track widths out of array
-        if np.shape(csv_data_temp)[1] == 3:
-            refline_ = csv_data_temp[:, 0:2]
-            w_tr_r = csv_data_temp[:, 2] / 2
-            w_tr_l = w_tr_r
-
-        elif np.shape(csv_data_temp)[1] == 4:
-            refline_ = csv_data_temp[:, 0:2]
-            w_tr_r = csv_data_temp[:, 2]
-            w_tr_l = csv_data_temp[:, 3]
-
-        elif np.shape(csv_data_temp)[1] == 5:  # omit z coordinate in this case
-            refline_ = csv_data_temp[:, 0:2]
-            w_tr_r = csv_data_temp[:, 3]
-            w_tr_l = csv_data_temp[:, 4]
-
-        else:
-            raise IOError("Track file cannot be read!")
-
-        refline_ = np.tile(refline_, (num_laps, 1))
-        w_tr_r = np.tile(w_tr_r, num_laps)
-        w_tr_l = np.tile(w_tr_l, num_laps)
-
-        # assemble to a single array
-        reftrack_imp = np.column_stack((refline_, w_tr_r, w_tr_l))
-
-        # Algorithms work for clockwise racetrack (i.e. they assume right bound points inward). If not given,
-        # change order
-        if not RaceTrackFactory.check_clockwise(reftrack_imp[:, :2]):
-            reftrack_imp = np.flipud(reftrack_imp)
-
-        # check if imported centerline should be reordered for a new starting point
-        if set_new_start:
-            ind_start = np.argmin(
-                np.power(reftrack_imp[:, 0] - new_start[0], 2)
-                + np.power(reftrack_imp[:, 1] - new_start[1], 2)
-            )
-            reftrack_imp = np.roll(
-                reftrack_imp, reftrack_imp.shape[0] - ind_start, axis=0
-            )
-
-        # check minimum track width for vehicle width plus a small safety margin
-        w_tr_min = np.amin(reftrack_imp[:, 2] + reftrack_imp[:, 3])
-
-        if w_tr_min < vehicle_width + vehicle_safe_margin_m:
-            warnings.warn(
-                f"Minimum track width={np.amin(w_tr_min)}, "
-                f"which is close to or smaller than vehicle width {vehicle_width} !"
-            )
-
-        # return reftrack_imp
-
-        return RaceTrack(
-            x_m=reftrack_imp[:, 0],
-            y_m=reftrack_imp[:, 1],
-            w_tr_right_m=reftrack_imp[:, 2],
-            w_tr_left_m=reftrack_imp[:, 3],
-        )
-
-    @staticmethod
     def generate_racetrack_from_cr_scenario(
         lanelet_network: LaneletNetwork,
         planning_problem: PlanningProblem,
         vehicle_width: float,
         removing_distance: float = 0.5,
         vehicle_safe_margin_m: float = 0.5,
-        lanelet_generation_loop_breack: int = 1000,
+        lanelet_generation_loop_brake: int = 1000,
     ) -> RaceTrack:
         """
-        Load racetrack from cr scenario
-
-        The CSV file contains the x and y coordinates of each point in the centerline of each lanelet in the lanelet network,
-        as well as the distances from each center point to the nearest point in the left and right lines of the lanelet.
-        (width_track_left and width_track_right)
+        Generates a cr racetrack object from cr scenario and planning problem
+        :param lanelet_network: cr lanelet network
+        :param planning_problem: cr planning problem
+        :param vehicle_width: vehicle width
+        :param removing_distance: remove close points in cr scenario with this distance
+        :param vehicle_safe_margin_m: extra padding between vehicle and racetrack widtn
+        :param lanelet_generation_loop_brake: after this many iterations lanelet track generation will through error
+        :return: cr racetrack
         """
         # construct racetrack from lanelet network
         lanelets_ids_track: List[int] = []
@@ -210,9 +124,9 @@ class RaceTrackFactory:
                 )
 
             cnt += 1
-            if cnt > lanelet_generation_loop_breack:
+            if cnt > lanelet_generation_loop_brake:
                 raise ValueError(
-                    f"Stuck in lanelet generation loop for {lanelet_generation_loop_breack} iterations"
+                    f"Stuck in lanelet generation loop for {lanelet_generation_loop_brake} iterations"
                 )
 
         # Open the XML file and read the scenario
@@ -324,3 +238,91 @@ class RaceTrackFactory:
             )
 
         return True if edge_sum > 0 else False
+
+    @staticmethod
+    def _generate_racetrack_from_csv(
+        file_path: str,
+        vehicle_width: float,
+        num_laps: int = 1,
+        set_new_start: bool = False,
+        new_start: Optional[np.ndarray] = None,
+        vehicle_safe_margin_m: float = 0.5,
+    ) -> RaceTrack:
+        """
+        FOR NEXT RELEASE: CURRENTLY NOT WORKING
+        Import racetrack from csv
+
+        Inputs:
+        file_path:      file path of track.csv containing [x_m,y_m,w_tr_right_m,w_tr_left_m]
+        imp_opts:       import options showing if a new starting point should be set or if the direction should be reversed
+        width_veh:      vehicle width required to check against track width
+
+        Outputs:
+        race_track:   imported track [x_m, y_m, w_tr_right_m, w_tr_left_m]
+        """
+
+        raise NotImplementedError(
+            "currently not implemented since no direct conversionto commonroad in cr designer"
+        )
+
+        # load data from csv file
+        csv_data_temp = np.loadtxt(file_path, comments="#", delimiter=",")
+
+        # get coords and track widths out of array
+        if np.shape(csv_data_temp)[1] == 3:
+            refline_ = csv_data_temp[:, 0:2]
+            w_tr_r = csv_data_temp[:, 2] / 2
+            w_tr_l = w_tr_r
+
+        elif np.shape(csv_data_temp)[1] == 4:
+            refline_ = csv_data_temp[:, 0:2]
+            w_tr_r = csv_data_temp[:, 2]
+            w_tr_l = csv_data_temp[:, 3]
+
+        elif np.shape(csv_data_temp)[1] == 5:  # omit z coordinate in this case
+            refline_ = csv_data_temp[:, 0:2]
+            w_tr_r = csv_data_temp[:, 3]
+            w_tr_l = csv_data_temp[:, 4]
+
+        else:
+            raise IOError("Track file cannot be read!")
+
+        refline_ = np.tile(refline_, (num_laps, 1))
+        w_tr_r = np.tile(w_tr_r, num_laps)
+        w_tr_l = np.tile(w_tr_l, num_laps)
+
+        # assemble to a single array
+        reftrack_imp = np.column_stack((refline_, w_tr_r, w_tr_l))
+
+        # Algorithms work for clockwise racetrack (i.e. they assume right bound points inward). If not given,
+        # change order
+        if not RaceTrackFactory.check_clockwise(reftrack_imp[:, :2]):
+            reftrack_imp = np.flipud(reftrack_imp)
+
+        # check if imported centerline should be reordered for a new starting point
+        if set_new_start:
+            ind_start = np.argmin(
+                np.power(reftrack_imp[:, 0] - new_start[0], 2)
+                + np.power(reftrack_imp[:, 1] - new_start[1], 2)
+            )
+            reftrack_imp = np.roll(
+                reftrack_imp, reftrack_imp.shape[0] - ind_start, axis=0
+            )
+
+        # check minimum track width for vehicle width plus a small safety margin
+        w_tr_min = np.amin(reftrack_imp[:, 2] + reftrack_imp[:, 3])
+
+        if w_tr_min < vehicle_width + vehicle_safe_margin_m:
+            warnings.warn(
+                f"Minimum track width={np.amin(w_tr_min)}, "
+                f"which is close to or smaller than vehicle width {vehicle_width} !"
+            )
+
+        # return reftrack_imp
+
+        return RaceTrack(
+            x_m=reftrack_imp[:, 0],
+            y_m=reftrack_imp[:, 1],
+            w_tr_right_m=reftrack_imp[:, 2],
+            w_tr_left_m=reftrack_imp[:, 3],
+        )

@@ -32,12 +32,12 @@ def plot_param(
 ) -> None:
     """
     Plots a parameter of the raceline
-    :param lanelet_network:
-    :param planning_problem:
-    :param race_line:
-    :param title:
-    :param param:
-    :param size_x:
+    :param lanelet_network: cr lanelet network
+    :param planning_problem: cr planning problem
+    :param race_line: cr raceline
+    :param title: title string of plot
+    :param param: param as (n,) np.ndarray
+    :param size_x: size of plot
     """
     _ = plt.figure(figsize=(40, 20))
 
@@ -88,10 +88,11 @@ def plot_trajectory_with_all_quantities(
 ) -> None:
     """
     Plot all quantities
-    :param lanelet_network:
-    :param planning_problem:
-    :param race_line:
-    :param size_x:
+    Plots a parameter of the raceline
+    :param lanelet_network: cr lanelet network
+    :param planning_problem: cr planning problem
+    :param race_line: cr raceline
+    :param size_x: size of plot
     """
     plot_trajectory_with_velocity(
         lanelet_network=lanelet_network,
@@ -125,6 +126,13 @@ def plot_trajectory_with_velocity(
     race_line: RaceLine,
     size_x: float = 10,
 ) -> None:
+    """
+    Plots trajectory with velocity
+    :param lanelet_network: cr lanelet network
+    :param planning_problem: cr planning problem
+    :param race_line: cr raceline
+    :param size_x: size of plot
+    """
     plot_param(
         lanelet_network=lanelet_network,
         planning_problem=planning_problem,
@@ -141,6 +149,13 @@ def plot_trajectory_with_curvature(
     race_line: RaceLine,
     size_x: float = 10,
 ) -> None:
+    """
+    Plots trajectory with curvature
+    :param lanelet_network: cr lanelet network
+    :param planning_problem: cr planning problem
+    :param race_line: cr raceline
+    :param size_x: size of plot
+    """
     plot_param(
         lanelet_network=lanelet_network,
         planning_problem=planning_problem,
@@ -157,6 +172,13 @@ def plot_trajectory_with_acceleration(
     race_line: RaceLine,
     size_x: float = 10,
 ) -> None:
+    """
+    Plots trajectory with acceleration
+    :param lanelet_network: cr lanelet network
+    :param planning_problem: cr planning problem
+    :param race_line: cr raceline
+    :param size_x: size of plot
+    """
     plot_param(
         lanelet_network=lanelet_network,
         planning_problem=planning_problem,
@@ -173,6 +195,13 @@ def plot_trajectory_with_heading(
     race_line: RaceLine,
     size_x: float = 10,
 ) -> None:
+    """
+    Plots trajectory with heading
+    :param lanelet_network: cr lanelet network
+    :param planning_problem: cr planning problem
+    :param race_line: cr raceline
+    :param size_x: size of plot
+    """
     plot_param(
         lanelet_network=lanelet_network,
         planning_problem=planning_problem,
@@ -200,7 +229,6 @@ def draw_trajectory_positions(
     :param v_max: v_max
     :param point_radius: radius to display point
     """
-
     normalized_velocity: float = (
         (velocity - v_min) / (v_max - v_min) if not np.isclose(v_max, v_min) else 0
     )
@@ -243,8 +271,3 @@ def obtain_plot_limits_from_reference_path(
     plot_limits = [x_min - margin, x_max + margin, y_min - margin, y_max + margin]
 
     return plot_limits
-
-
-# testing --------------------------------------------------------------------------------------------------------------
-if __name__ == "__main__":
-    pass

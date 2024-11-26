@@ -46,7 +46,7 @@ class TestCRMincurv(unittest.TestCase):
                     show_plot=True
                 )
 
-            with self.subTest(msg=f"Testing scenario: {filename} with minmum curvature fappi", filename=filename):
+            with self.subTest(msg=f"Testing scenario: {filename} with minmum curvature fapi", filename=filename):
                 raceline: RaceLine = generate_ftm_minimum_curvature_raceline_from_cr(
                     cr_scenario=scenario,
                     planning_problem=planning_problem,
