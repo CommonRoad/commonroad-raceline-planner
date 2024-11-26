@@ -33,7 +33,6 @@ class ComputationConfigFactory(BaseConfigFactory):
     def generate_from_racecar_ini(
             self,
             path_to_racecar_ini: Union[Path, str],
-            optimization_type: OptimizationType = OptimizationType.MINIMUM_CURVATURE
     ) -> ComputationConfig:
 
         # TODO: remove currently doubled sanity check
@@ -45,10 +44,8 @@ class ComputationConfigFactory(BaseConfigFactory):
             path_to_racecar_ini=path_to_racecar_ini
         )
 
-        # TODO: include optimization type read out
         optimization_config: OptimizationConfig = OptimizationConfigFactory().generate_from_racecar_ini(
-            path_to_racecar_ini=path_to_racecar_ini,
-            optimization_type=optimization_type
+            path_to_racecar_ini=path_to_racecar_ini
         )
 
         return ComputationConfig(

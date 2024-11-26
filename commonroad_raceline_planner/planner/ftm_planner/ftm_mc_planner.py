@@ -292,7 +292,6 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
             kappa_bound=self._config.computation_config.general_config.vehicle_config.curvature_limit,
             w_veh=self._config.computation_config.optimization_config.opt_min_curvature_config.vehicle_width_opt,
             print_debug=self._config.execution_config.debug_config.debug,
-            plot_debug=self._config.execution_config.debug_config.mincurv_curv_lin
         )
 
     def _preprocess_track(self) -> None:
@@ -326,10 +325,10 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
         )
 
         # inflate track
-        if self._config.execution_config.import_config.min_track_width is not None:
+        if self._config.execution_config.min_track_width is not None:
             preprocessed_dto: DtoFTM = WidthInflationLayer().inflate_width(
                 dto_racetrack=spline_track,
-                mininmum_track_width=self._config.execution_config.import_config.min_track_width,
+                mininmum_track_width=self._config.execution_config.min_track_width,
                 return_new_instance=False
             )
         else:

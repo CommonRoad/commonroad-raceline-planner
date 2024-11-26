@@ -1,53 +1,10 @@
 debug:
   debug: true
-  plot_opts:
-    mincurv_curv_lin: false
-    raceline: true
-    imported_bounds: false
-    raceline_curv: true
-    racetraj_vel: true
-    racetraj_vel_3d: false
-    racetraj_vel_3d_stepsize: 1.0
-    spline_normals: false
-    mintime_plots: false
 
 import_opts:
-  flip_imp_track: false
   set_new_start: false
   new_start: [0.0, -47.0]
-  min_track_width: null
   num_laps: 1
-
-mintime_opts:
-  tpadata: null
-  warm_start: false
-  var_friction: null
-  reopt_mintime_solution: false
-  recalc_vel_profile_by_tph: false
-
-lap_time_mat_opts:
-  use_lap_time_mat: false
-  gg_scale_range: [0.3, 1.0]
-  gg_scale_stepsize: 0.05
-  top_speed_range: [100.0, 150.0]
-  top_speed_stepsize: 5.0
-  file: "lap_time_matrix.csv"
-
-file_paths:
-  veh_params_file: "inputs/params/racecar.ini"
-#  track_name: "handling_track"
-#  track_file: "inputs/tracks/handling_track.csv"
-  track_name: "lanelet_data.csv"
-  track_file: "inputs/tracks/lanelet_data.csv"
-  ggv_file: "inputs/veh_dyn_info/ggv.csv"
-  ax_max_machines_file: "inputs/veh_dyn_info/ax_max_machines.csv"
-  traj_race_export: "outputs/traj_race_cl.csv"
-  traj_ltpl_export: null
-  lap_time_mat_export: "outputs/lap_time_matrix.csv"
-  reference_path_export: "outputs/reference_path.json"
-  velocity_profile_export: "outputs/velocity_profile.json"
-
-
 
 opt_type: "mincurv"
 #opt_type: "shortest_path"

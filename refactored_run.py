@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 from pathlib import Path
 
 # commonroad
@@ -18,18 +18,27 @@ from commonroad_raceline_planner.util.visualization.visualize_over_arclength imp
 
 def main(
         cr_path: Union[str, Path],
-        config_path: Union[str, Path],
         ini_path: Union[str, Path],
+        veh_params_file: Union[str, Path],
+        ggv_file: Union[str, Path],
+        ax_max_machines_file: Union[str, Path],
+        traj_race_export: Union[str, Path],
+        velocity_profile_export: Union[str, Path],
+        opt_type: OptimizationType = OptimizationType.SHORTEST_PATH,
+        min_track_width: Optional[float] = None
 ) -> None:
     # Commonroad imports
     scenario, planning_problem_set = CommonRoadFileReader(cr_path).open()
     planning_problem: PlanningProblem = list(planning_problem_set.planning_problem_dict.values())[0]
 
     # generate configs
-    ftm_config: FTMConfig = FTMConfigFactory().generate_from_ini_and_config_file(
+    ftm_config: FTMConfig = FTMConfigFactory().generate_from_ini(
         path_to_ini=ini_path,
-        path_to_config_yml=config_path,
-        optimization_type=OptimizationType.MINIMUM_CURVATURE
+        veh_params_file=veh_params_file,
+        ggv_file=ggv_file,
+        ax_max_machines_file=ax_max_machines_file,
+        optimization_type=OptimizationType.MINIMUM_CURVATURE,
+        min_track_width=min_track_width
     )
 
     # import race track
@@ -40,24 +49,24 @@ def main(
     )
 
     # plan
-    if ftm_config.execution_config.optimization_type == OptimizationType.MINIMUM_CURVATURE:
+    if opt_type == OptimizationType.MINIMUM_CURVATURE:
         mcp = MinimumCurvaturePlanner(
             config=ftm_config, race_track=race_track
         )
         raceline: RaceLine = mcp.plan()
 
-    elif ftm_config.execution_config.optimization_type == OptimizationType.SHORTEST_PATH:
+    elif opt_type == OptimizationType.SHORTEST_PATH:
         spp = ShortestPathPlanner(
             config=ftm_config, race_track=race_track
         )
         raceline: RaceLine = spp.plan()
     else:
-        raise NotImplementedError(f'Planner not implemented')
+        raise NotImplementedError(f'Planner {opt_type} not implemented')
 
     # export data
     raceline.export_trajectory_to_csv_file(
-        export_path=ftm_config.execution_config.filepath_config.traj_race_export,
-        ggv_file_path=ftm_config.execution_config.filepath_config.ggv_file
+        export_path=traj_race_export,
+        ggv_file_path=velocity_profile_export
     )
 
     plot_trajectory_with_all_quantities(
@@ -72,11 +81,21 @@ def main(
 
 
 if __name__ == "__main__":
-    config_path: Path = Path(__file__).parents[0] / "configurations/race_line_planner_config.yaml"
     cr_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/ZAM_realrounded-1_1_T-1.xml"
     ini_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/params/racecar.ini"
+    veh_params_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/params/racecar.ini"
+    ggv_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/veh_dyn_info/ggv.csv"
+    ax_max_machines_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/veh_dyn_info/ax_max_machines.csv"
+    traj_race_export = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/outputs/traj_race_cl.csv"
+    velocity_profile_export = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/outputs/velocity_profile.json"
+    opt_type: OptimizationType = OptimizationType.MINIMUM_CURVATURE
     main(
-        config_path=config_path,
         cr_path=cr_path,
         ini_path=ini_path,
+        veh_params_file=veh_params_file,
+        ggv_file=ggv_file,
+        ax_max_machines_file=ax_max_machines_file,
+        traj_race_export=traj_race_export,
+        velocity_profile_export=velocity_profile_export,
+        opt_type=opt_type,
     )

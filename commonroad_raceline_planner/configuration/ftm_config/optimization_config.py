@@ -49,7 +49,6 @@ class OptimizationConfigFactory(BaseConfigFactory):
     def generate_from_racecar_ini(
             self,
             path_to_racecar_ini: Union[Path, str],
-            optimization_type: OptimizationType
     ) -> OptimizationConfig:
         """
         Generates Optimization Config from racecar ini
@@ -60,9 +59,6 @@ class OptimizationConfigFactory(BaseConfigFactory):
 
         # load _execution_config
         self._load_ini(path_to_racecar_ini)
-
-        opt_shortest_path_config: Union[OptShortestPathConfig, None] = None
-        opt_min_curvature_config: Union[OptMinimumCurvatureConfig, None] = None
 
         # transform to sub-data classes
         conf = json.loads(

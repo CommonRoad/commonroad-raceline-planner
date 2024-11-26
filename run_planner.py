@@ -499,6 +499,6 @@ class RaceLinePlanner:
 if __name__ == "__main__":
     config_path: Path = Path(__file__).parents[0] / "configurations/race_line_planner_config.yaml"
 
-    config: ExecutionConfig = ExecutionConfigFactory().generate_from_yml(config_path)
+    config: ExecutionConfig = ExecutionConfigFactory().generate_exec_config(config_path)
     planner = RaceLinePlanner(config)
     planner.run()

@@ -17,7 +17,6 @@ def opt_min_curv(
          kappa_bound: float,
          w_veh: float,
          print_debug: bool = False,
-         plot_debug: bool = False,
 ) -> Tuple[np.ndarray, float]:
     """
     """
@@ -191,7 +190,7 @@ def opt_min_curv(
         curv_sol_lin[i] = (x_prime_tmp[i, i] * y_prime_prime[i] - y_prime_tmp[i, i] * x_prime_prime[i]) \
                            / math.pow(math.pow(x_prime_tmp[i, i], 2) + math.pow(y_prime_tmp[i, i], 2), 1.5)
 
-    if plot_debug:
+    if print_debug:
         plt.plot(curv_orig_lin)
         plt.plot(curv_sol_lin)
         plt.legend(("original linearization", "solution based linearization"))
