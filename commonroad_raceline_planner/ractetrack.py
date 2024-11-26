@@ -1,6 +1,8 @@
 from dataclasses import dataclass
-import numpy as np
 import warnings
+
+from scipy.spatial.kdtree import KDTree
+import numpy as np
 
 # commonroad
 from commonroad.planning.planning_problem import PlanningProblem
@@ -89,7 +91,6 @@ class RaceTrackFactory:
         file_path: str,
         vehicle_width: float,
         num_laps: int = 1,
-        flip_track: bool = False,
         set_new_start: bool = False,
         new_start: Optional[np.ndarray] = None,
         vehicle_safe_margin_m: float = 0.5
@@ -135,8 +136,9 @@ class RaceTrackFactory:
         # assemble to a single array
         reftrack_imp = np.column_stack((refline_, w_tr_r, w_tr_l))
 
-        # check if imported centerline should be flipped, i.e. reverse direction
-        if flip_track:
+        # Algorithms work for clockwise racetrack (i.e. they assume right bound points inward). If not given,
+        # change order
+        if not RaceTrackFactory.check_clockwise(reftrack_imp[:, :2]):
             reftrack_imp = np.flipud(reftrack_imp)
 
         # check if imported centerline should be reordered for a new starting point
@@ -170,8 +172,6 @@ class RaceTrackFactory:
             lanelet_network: LaneletNetwork,
             planning_problem: PlanningProblem,
             vehicle_width: float,
-            num_laps: int = 1,
-            flip_track: bool = False,
             set_new_start: bool = False,
             new_start: Optional[np.ndarray] = None,
             removing_distance: float = 0.5,
@@ -258,16 +258,10 @@ class RaceTrackFactory:
         if not RaceTrackFactory.check_clockwise(npoints[:, 0:2]):
             npoints = np.flipud(npoints)
 
-        # manually flipped -> TODO: remove
-        #if flip_track:
-            #npoints = np.flipud(npoints)
-
-        # TODO: Add planning problem
-        # check if imported centerline should be reordered for a new starting point
-        if set_new_start:
-            ind_start = np.argmin(np.power(npoints[:, 0] - new_start[0], 2)
-                                  + np.power(npoints[:, 1] - new_start[1], 2))
-            npoints = np.roll(npoints, npoints.shape[0] - ind_start, axis=0)
+        # set zero of centerline to beginning of planning problem
+        kd_tree = KDTree(npoints[:, 0:2])
+        _, idx = kd_tree.query(planning_problem.initial_state.position)
+        npoints = np.roll(npoints, npoints.shape[0] - idx, axis=0)
 
 
         # check minimum track width for vehicle width plus a small safety margin
@@ -284,15 +278,6 @@ class RaceTrackFactory:
             w_tr_left_m=npoints[:, 3],
             lanelet_network=lanelet_network
         )
-
-    @staticmethod
-    def sort_lanelets_by_id(
-            lanelet_network: LaneletNetwork
-    ) -> List[Lanelet]:
-        lanelets = lanelet_network.lanelets
-        lanelets.sort(key=lambda l: int(l.lanelet_id))
-        return lanelets
-
 
     @staticmethod
     def check_clockwise(

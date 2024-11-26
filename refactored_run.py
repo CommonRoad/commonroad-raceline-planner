@@ -73,7 +73,7 @@ def main(
 
 if __name__ == "__main__":
     config_path: Path = Path(__file__).parents[0] / "configurations/race_line_planner_config.yaml"
-    cr_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/DEU_Hhr-1_1.xml"
+    cr_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/tracks/XML_maps/ZAM_realrounded-1_1_T-1.xml"
     ini_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/inputs/params/racecar.ini"
     main(
         config_path=config_path,

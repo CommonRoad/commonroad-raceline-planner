@@ -49,5 +49,5 @@ file_paths:
 
 
 
-#opt_type: "mincurv"
-opt_type: "shortest_path"
+opt_type: "mincurv"
+#opt_type: "shortest_path"
