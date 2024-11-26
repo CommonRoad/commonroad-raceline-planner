@@ -8,7 +8,7 @@ from run_planner_example import main
 
 class TestCRShortestPath(unittest.TestCase):
     """
-    Test Shorstest Path on CommonRoad
+    Test Shortest Path on CommonRoad
     """
 
     def test_cr_sp(self):
