@@ -3,9 +3,11 @@ from typing import Union
 import numpy as np
 
 
-def angle3pt(a: Union[tuple, np.ndarray],
-             b: Union[tuple, np.ndarray],
-             c: Union[tuple, np.ndarray]) -> float:
+def angle3pt(
+    a: Union[tuple, np.ndarray],
+    b: Union[tuple, np.ndarray],
+    c: Union[tuple, np.ndarray],
+) -> float:
     """
     author:
     Tim Stahl

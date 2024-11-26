@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 from logging import Logger
 
 # own code base
@@ -15,11 +15,7 @@ class BaseRacelinePlanner(ABC):
     Base class for a raceline planner
     """
 
-    def __init__(
-            self,
-            race_track: RaceTrack,
-            config: Any
-    ) -> None:
+    def __init__(self, race_track: RaceTrack, config: Any) -> None:
         """
         Base class for a raceline planner
         :param lanelet_network: cr lanelet network
@@ -36,7 +32,6 @@ class BaseRacelinePlanner(ABC):
         """
         pass
 
-
     @property
     def config(self) -> Any:
         """
@@ -48,18 +43,13 @@ class BaseRacelinePlanner(ABC):
     def race_track(self):
         return self._race_track
 
-
     @abstractmethod
-    def update_config(
-            self,
-            config: Any
-    ) -> None:
+    def update_config(self, config: Any) -> None:
         """
         updates the planner config
         :param config: planner config
         """
         pass
-
 
     @abstractmethod
     def plan(self) -> RaceLine:
@@ -68,10 +58,3 @@ class BaseRacelinePlanner(ABC):
         :return: cr raceline
         """
         pass
-
-
-
-
-
-
-

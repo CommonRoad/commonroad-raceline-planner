@@ -2,9 +2,11 @@ import numpy as np
 from typing import Union
 
 
-def side_of_line(a: Union[tuple, np.ndarray],
-                 b: Union[tuple, np.ndarray],
-                 z: Union[tuple, np.ndarray]) -> float:
+def side_of_line(
+    a: Union[tuple, np.ndarray],
+    b: Union[tuple, np.ndarray],
+    z: Union[tuple, np.ndarray],
+) -> float:
     """
     author:
     Alexander Heilmeier

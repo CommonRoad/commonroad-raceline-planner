@@ -1,12 +1,16 @@
 import numpy as np
 import math
-from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_ax_profile import calc_ax_profile
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_ax_profile import (
+    calc_ax_profile,
+)
 
 
-def calc_t_profile(vx_profile: np.ndarray,
-                   el_lengths: np.ndarray,
-                   t_start: float = 0.0,
-                   ax_profile: np.ndarray = None) -> np.ndarray:
+def calc_t_profile(
+    vx_profile: np.ndarray,
+    el_lengths: np.ndarray,
+    t_start: float = 0.0,
+    ax_profile: np.ndarray = None,
+) -> np.ndarray:
     """
     author:
     Alexander Heilmeier
@@ -37,16 +41,20 @@ def calc_t_profile(vx_profile: np.ndarray,
 
     # check inputs
     if vx_profile.size < el_lengths.size:
-        raise RuntimeError("vx_profile and el_lenghts must have at least the same length!")
+        raise RuntimeError(
+            "vx_profile and el_lenghts must have at least the same length!"
+        )
 
     if ax_profile is not None and ax_profile.size < el_lengths.size:
-        raise RuntimeError("ax_profile and el_lenghts must have at least the same length!")
+        raise RuntimeError(
+            "ax_profile and el_lenghts must have at least the same length!"
+        )
 
     # calculate acceleration profile if required
     if ax_profile is None:
-        ax_profile = calc_ax_profile(vx_profile=vx_profile,
-                                                                                 el_lengths=el_lengths,
-                                                                                 eq_length_output=False)
+        ax_profile = calc_ax_profile(
+            vx_profile=vx_profile, el_lengths=el_lengths, eq_length_output=False
+        )
 
     # calculate temporal duration of every step between two points
     no_points = el_lengths.size
@@ -54,8 +62,12 @@ def calc_t_profile(vx_profile: np.ndarray,
 
     for i in range(no_points):
         if not math.isclose(ax_profile[i], 0.0):
-            t_steps[i] = (-vx_profile[i] + math.sqrt((math.pow(vx_profile[i], 2) + 2 * ax_profile[i] * el_lengths[i])))\
-                         / ax_profile[i]
+            t_steps[i] = (
+                -vx_profile[i]
+                + math.sqrt(
+                    (math.pow(vx_profile[i], 2) + 2 * ax_profile[i] * el_lengths[i])
+                )
+            ) / ax_profile[i]
 
         else:  # ax == 0.0
             t_steps[i] = el_lengths[i] / vx_profile[i]

@@ -2,10 +2,12 @@ import numpy as np
 import math
 
 
-def calc_spline_lengths(coeffs_x: np.ndarray,
-                        coeffs_y: np.ndarray,
-                        quickndirty: bool = False,
-                        no_interp_points: int = 15) -> np.ndarray:
+def calc_spline_lengths(
+    coeffs_x: np.ndarray,
+    coeffs_y: np.ndarray,
+    quickndirty: bool = False,
+    no_interp_points: int = 15,
+) -> np.ndarray:
     """
     author:
     Alexander Heilmeier
@@ -55,8 +57,10 @@ def calc_spline_lengths(coeffs_x: np.ndarray,
 
     if quickndirty:
         for i in range(no_splines):
-            spline_lengths[i] = math.sqrt(math.pow(np.sum(coeffs_x[i]) - coeffs_x[i, 0], 2)
-                                          + math.pow(np.sum(coeffs_y[i]) - coeffs_y[i, 0], 2))
+            spline_lengths[i] = math.sqrt(
+                math.pow(np.sum(coeffs_x[i]) - coeffs_x[i, 0], 2)
+                + math.pow(np.sum(coeffs_y[i]) - coeffs_y[i, 0], 2)
+            )
 
     else:
         # loop through all the splines and calculate intermediate coordinates
@@ -64,16 +68,22 @@ def calc_spline_lengths(coeffs_x: np.ndarray,
         spl_coords = np.zeros((no_interp_points, 2))
 
         for i in range(no_splines):
-            spl_coords[:, 0] = coeffs_x[i, 0] \
-                               + coeffs_x[i, 1] * t_steps \
-                               + coeffs_x[i, 2] * np.power(t_steps, 2) \
-                               + coeffs_x[i, 3] * np.power(t_steps, 3)
-            spl_coords[:, 1] = coeffs_y[i, 0] \
-                               + coeffs_y[i, 1] * t_steps \
-                               + coeffs_y[i, 2] * np.power(t_steps, 2) \
-                               + coeffs_y[i, 3] * np.power(t_steps, 3)
+            spl_coords[:, 0] = (
+                coeffs_x[i, 0]
+                + coeffs_x[i, 1] * t_steps
+                + coeffs_x[i, 2] * np.power(t_steps, 2)
+                + coeffs_x[i, 3] * np.power(t_steps, 3)
+            )
+            spl_coords[:, 1] = (
+                coeffs_y[i, 0]
+                + coeffs_y[i, 1] * t_steps
+                + coeffs_y[i, 2] * np.power(t_steps, 2)
+                + coeffs_y[i, 3] * np.power(t_steps, 3)
+            )
 
-            spline_lengths[i] = np.sum(np.sqrt(np.sum(np.power(np.diff(spl_coords, axis=0), 2), axis=1)))
+            spline_lengths[i] = np.sum(
+                np.sqrt(np.sum(np.power(np.diff(spl_coords, axis=0), 2), axis=1))
+            )
 
     return spline_lengths
 

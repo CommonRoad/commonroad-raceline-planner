@@ -1,12 +1,14 @@
 import numpy as np
 
 
-def get_rel_path_part(path_cl: np.ndarray,
-                      s_pos: float,
-                      s_dist_back: float = 20.0,
-                      s_dist_forw: float = 20.0,
-                      bound_right_cl: np.ndarray = None,
-                      bound_left_cl: np.ndarray = None) -> tuple:
+def get_rel_path_part(
+    path_cl: np.ndarray,
+    s_pos: float,
+    s_dist_back: float = 20.0,
+    s_dist_forw: float = 20.0,
+    bound_right_cl: np.ndarray = None,
+    bound_left_cl: np.ndarray = None,
+) -> tuple:
     """
     author:
     Alexander Heilmeier
@@ -46,14 +48,20 @@ def get_rel_path_part(path_cl: np.ndarray,
 
     # check distance input
     if s_dist_back + s_dist_forw >= s_tot:
-        raise RuntimeError('Summed distance inputs are greater or equal to the total distance of the given path!')
+        raise RuntimeError(
+            "Summed distance inputs are greater or equal to the total distance of the given path!"
+        )
 
     # check boundaries
     if bound_right_cl is not None and bound_right_cl.shape[0] != path_cl.shape[0]:
-        raise RuntimeError('Inserted right boundary does not have the same number of points as the path!')
+        raise RuntimeError(
+            "Inserted right boundary does not have the same number of points as the path!"
+        )
 
     if bound_left_cl is not None and bound_left_cl.shape[0] != path_cl.shape[0]:
-        raise RuntimeError('Inserted left boundary does not have the same number of points as the path!')
+        raise RuntimeError(
+            "Inserted left boundary does not have the same number of points as the path!"
+        )
 
     # cut s position if it exceeds the path length
     if s_pos >= s_tot:
@@ -102,12 +110,16 @@ def get_rel_path_part(path_cl: np.ndarray,
         path_rel = np.vstack((path_cl[idx_start:-1], path_rel_part2))
 
         if bound_right_cl is not None:
-            bound_right_rel = np.vstack((bound_right_cl[idx_start:-1], bound_right_cl[:idx_stop]))
+            bound_right_rel = np.vstack(
+                (bound_right_cl[idx_start:-1], bound_right_cl[:idx_stop])
+            )
         else:
             bound_right_rel = None
 
         if bound_left_cl is not None:
-            bound_left_rel = np.vstack((bound_left_cl[idx_start:-1], bound_left_cl[:idx_stop]))
+            bound_left_rel = np.vstack(
+                (bound_left_cl[idx_start:-1], bound_left_cl[:idx_stop])
+            )
         else:
             bound_left_rel = None
 

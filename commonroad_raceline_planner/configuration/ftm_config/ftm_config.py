@@ -5,18 +5,18 @@ from pathlib import Path
 from commonroad_raceline_planner.configuration.base_config import BaseConfigFactory
 from commonroad_raceline_planner.configuration.ftm_config.computation_config import (
     ComputationConfig,
-    ComputationConfigFactory
+    ComputationConfigFactory,
 )
 from commonroad_raceline_planner.configuration.ftm_config.execution_config import (
     ExecutionConfig,
-    ExecutionConfigFactory
+    ExecutionConfigFactory,
 )
-from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
+from commonroad_raceline_planner.configuration.ftm_config.optimization_config import (
+    OptimizationType,
+)
 
 # typing
 from typing import Union, Optional
-
-
 
 
 @dataclass
@@ -26,6 +26,7 @@ class FTMConfig:
     :param execution_config: execution config
     :param compuation_config: computation config
     """
+
     execution_config: ExecutionConfig
     computation_config: ComputationConfig
 
@@ -34,6 +35,7 @@ class FTMConfigFactory(BaseConfigFactory):
     """
     Factory for FTM Config
     """
+
     @staticmethod
     def generate_from_files(
         path_to_ini: Union[str, Path],
@@ -64,9 +66,5 @@ class FTMConfigFactory(BaseConfigFactory):
                 min_track_width=min_track_width,
                 optimization_type=optimization_type,
                 debug=debug,
-            )
+            ),
         )
-
-
-
-

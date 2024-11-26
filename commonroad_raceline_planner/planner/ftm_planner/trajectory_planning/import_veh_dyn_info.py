@@ -3,12 +3,10 @@ import os.path
 import numpy as np
 from pathlib import Path
 
-from typing import Tuple, Union
+from typing import Union
 
 
-def import_ggv_diagram(
-        ggv_import_path: Union[str, Path]
-) -> np.ndarray:
+def import_ggv_diagram(ggv_import_path: Union[str, Path]) -> np.ndarray:
     """
     This function imports the required vehicle dynamics information from several files: The vehicle ggv diagram
     ([vx, ax_max, ay_max], velocity in m/s, accelerations in m/s2).
@@ -22,7 +20,7 @@ def import_ggv_diagram(
 
     # load csv
     with open(ggv_import_path, "rb") as fh:
-        ggv = np.loadtxt(fh, comments='#', delimiter=",")
+        ggv = np.loadtxt(fh, comments="#", delimiter=",")
 
     # expand dimension in case of a single row
     if ggv.ndim == 1:
@@ -30,24 +28,24 @@ def import_ggv_diagram(
 
     # check columns
     if ggv.shape[1] != 3:
-        raise RuntimeError("ggv diagram must consist of the three columns [vx, ax_max, ay_max]!")
+        raise RuntimeError(
+            "ggv diagram must consist of the three columns [vx, ax_max, ay_max]!"
+        )
 
     # check values
-    invalid_1 = ggv[:, 0] < 0.0     # assure velocities > 0.0
-    invalid_2 = ggv[:, 1:] > 50.0   # assure valid maximum accelerations
-    invalid_3 = ggv[:, 1] < 0.0     # assure positive accelerations
-    invalid_4 = ggv[:, 2] < 0.0     # assure positive accelerations
+    invalid_1 = ggv[:, 0] < 0.0  # assure velocities > 0.0
+    invalid_2 = ggv[:, 1:] > 50.0  # assure valid maximum accelerations
+    invalid_3 = ggv[:, 1] < 0.0  # assure positive accelerations
+    invalid_4 = ggv[:, 2] < 0.0  # assure positive accelerations
 
     if np.any(invalid_1) or np.any(invalid_2) or np.any(invalid_3) or np.any(invalid_4):
         raise RuntimeError("ggv seems unreasonable!")
 
-
     return ggv
 
 
-
 def import_engine_constraints(
-        ax_max_machines_import_path: Union[str, Path]
+    ax_max_machines_import_path: Union[str, Path]
 ) -> np.ndarray:
     """
     the ax_max_machines array containing the
@@ -61,7 +59,7 @@ def import_engine_constraints(
 
     # load csv
     with open(ax_max_machines_import_path, "rb") as fh:
-        ax_max_machines = np.loadtxt(fh, comments='#',  delimiter=",")
+        ax_max_machines = np.loadtxt(fh, comments="#", delimiter=",")
 
     # expand dimension in case of a single row
     if ax_max_machines.ndim == 1:
@@ -69,19 +67,19 @@ def import_engine_constraints(
 
     # check columns
     if ax_max_machines.shape[1] != 2:
-        raise RuntimeError("ax_max_machines must consist of the two columns [vx, ax_max_machines]!")
+        raise RuntimeError(
+            "ax_max_machines must consist of the two columns [vx, ax_max_machines]!"
+        )
 
     # check values
-    invalid_1 = ax_max_machines[:, 0] < 0.0     # assure velocities > 0.0
-    invalid_2 = ax_max_machines[:, 1] > 20.0    # assure valid maximum accelerations
-    invalid_3 = ax_max_machines[:, 1] < 0.0     # assure positive accelerations
+    invalid_1 = ax_max_machines[:, 0] < 0.0  # assure velocities > 0.0
+    invalid_2 = ax_max_machines[:, 1] > 20.0  # assure valid maximum accelerations
+    invalid_3 = ax_max_machines[:, 1] < 0.0  # assure positive accelerations
 
     if np.any(invalid_1) or np.any(invalid_2) or np.any(invalid_3):
         raise RuntimeError("ax_max_machines seems unreasonable!")
 
-
     return ax_max_machines
-
 
 
 # testing --------------------------------------------------------------------------------------------------------------

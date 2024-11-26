@@ -1,9 +1,7 @@
 import numpy as np
 
-def calc_interpoint_length(
-        x_m: np.ndarray,
-        y_m: np.ndarray
-) -> np.ndarray:
+
+def calc_interpoint_length(x_m: np.ndarray, y_m: np.ndarray) -> np.ndarray:
     """
     Calc interpoint length
     :param x_m: x coordinate

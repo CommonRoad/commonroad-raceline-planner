@@ -1,9 +1,7 @@
 import numpy as np
 
 
-def conv_filt(signal: np.ndarray,
-              filt_window: int,
-              closed: bool) -> np.ndarray:
+def conv_filt(signal: np.ndarray, filt_window: int, closed: bool) -> np.ndarray:
     """
     author:
     Alexander Heilmeier
@@ -42,12 +40,14 @@ def conv_filt(signal: np.ndarray,
     # apply filter
     if closed:
         # temporarily add points in front of and behind signal
-        signal_tmp = np.concatenate((signal[-w_window_half:], signal, signal[:w_window_half]), axis=0)
+        signal_tmp = np.concatenate(
+            (signal[-w_window_half:], signal, signal[:w_window_half]), axis=0
+        )
 
         # apply convolution filter used as a moving average filter and remove temporary points
-        signal_filt = np.convolve(signal_tmp,
-                                  np.ones(filt_window) / float(filt_window),
-                                  mode="same")[w_window_half:-w_window_half]
+        signal_filt = np.convolve(
+            signal_tmp, np.ones(filt_window) / float(filt_window), mode="same"
+        )[w_window_half:-w_window_half]
 
     else:
         # implementation 1: include boundaries during filtering
@@ -66,9 +66,9 @@ def conv_filt(signal: np.ndarray,
 
         # implementation 2: start filtering at w_window_half and stop at -w_window_half
         signal_filt = np.copy(signal)
-        signal_filt[w_window_half:-w_window_half] = np.convolve(signal,
-                                                                np.ones(filt_window) / float(filt_window),
-                                                                mode="same")[w_window_half:-w_window_half]
+        signal_filt[w_window_half:-w_window_half] = np.convolve(
+            signal, np.ones(filt_window) / float(filt_window), mode="same"
+        )[w_window_half:-w_window_half]
 
     return signal_filt
 

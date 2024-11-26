@@ -2,21 +2,22 @@ import numpy as np
 import trajectory_planning_helpers as tph
 
 
-def iqp_handler(reftrack: np.ndarray,
-                normvectors: np.ndarray,
-                A: np.ndarray,
-                spline_len: np.ndarray,
-                psi: np.ndarray,
-                kappa: np.ndarray,
-                dkappa: np.ndarray,
-                kappa_bound: float,
-                w_veh: float,
-                print_debug: bool,
-                plot_debug: bool,
-                stepsize_interp: float,
-                iters_min: int = 3,
-                curv_error_allowed: float = 0.01) -> tuple:
-
+def iqp_handler(
+    reftrack: np.ndarray,
+    normvectors: np.ndarray,
+    A: np.ndarray,
+    spline_len: np.ndarray,
+    psi: np.ndarray,
+    kappa: np.ndarray,
+    dkappa: np.ndarray,
+    kappa_bound: float,
+    w_veh: float,
+    print_debug: bool,
+    plot_debug: bool,
+    stepsize_interp: float,
+    iters_min: int = 3,
+    curv_error_allowed: float = 0.01,
+) -> tuple:
     """
     author:
     Alexander Heilmeier
@@ -124,18 +125,22 @@ def iqp_handler(reftrack: np.ndarray,
         iter_cur += 1
 
         # calculate intermediate solution and catch sum of squared curvature errors
-        alpha_mincurv_tmp, curv_error_max_tmp = tph.opt_min_curv.\
-            opt_min_curv(reftrack=reftrack_tmp,
-                         normvectors=normvectors_tmp,
-                         A=A_tmp,
-                         kappa_bound=kappa_bound,
-                         w_veh=w_veh,
-                         print_debug=print_debug,
-                         plot_debug=plot_debug)
+        alpha_mincurv_tmp, curv_error_max_tmp = tph.opt_min_curv.opt_min_curv(
+            reftrack=reftrack_tmp,
+            normvectors=normvectors_tmp,
+            A=A_tmp,
+            kappa_bound=kappa_bound,
+            w_veh=w_veh,
+            print_debug=print_debug,
+            plot_debug=plot_debug,
+        )
 
         # print some progress information
         if print_debug:
-            print("Minimum curvature IQP: iteration %i, curv_error_max: %.4frad/m" % (iter_cur, curv_error_max_tmp))
+            print(
+                "Minimum curvature IQP: iteration %i, curv_error_max: %.4frad/m"
+                % (iter_cur, curv_error_max_tmp)
+            )
 
         # restrict solution space to improve validity of the linearization during the first steps
         if iter_cur < iters_min:
@@ -151,20 +156,25 @@ def iqp_handler(reftrack: np.ndarray,
         # INTERPOLATION FOR EQUAL STEPSIZES ----------------------------------------------------------------------------
         # --------------------------------------------------------------------------------------------------------------
 
-        refline_tmp, _, _, _, spline_inds_tmp, t_values_tmp = tph.create_raceline.\
-            create_raceline(refline=reftrack_tmp[:, :2],
-                            normvectors=normvectors_tmp,
-                            alpha=alpha_mincurv_tmp,
-                            stepsize_interp=stepsize_interp)[:6]
+        refline_tmp, _, _, _, spline_inds_tmp, t_values_tmp = (
+            tph.create_raceline.create_raceline(
+                refline=reftrack_tmp[:, :2],
+                normvectors=normvectors_tmp,
+                alpha=alpha_mincurv_tmp,
+                stepsize_interp=stepsize_interp,
+            )[:6]
+        )
 
         # calculate new track boundaries on the basis of the intermediate alpha values and interpolate them accordingly
         reftrack_tmp[:, 2] -= alpha_mincurv_tmp
         reftrack_tmp[:, 3] += alpha_mincurv_tmp
 
-        ws_track_tmp = tph.interp_track_widths.interp_track_widths(w_track=reftrack_tmp[:, 2:],
-                                                                   spline_inds=spline_inds_tmp,
-                                                                   t_values=t_values_tmp,
-                                                                   incl_last_point=False)
+        ws_track_tmp = tph.interp_track_widths.interp_track_widths(
+            w_track=reftrack_tmp[:, 2:],
+            spline_inds=spline_inds_tmp,
+            t_values=t_values_tmp,
+            incl_last_point=False,
+        )
 
         # create new reftrack
         reftrack_tmp = np.column_stack((refline_tmp, ws_track_tmp))
@@ -176,24 +186,35 @@ def iqp_handler(reftrack: np.ndarray,
         # calculate new splines
         refline_tmp_cl = np.vstack((reftrack_tmp[:, :2], reftrack_tmp[0, :2]))
 
-        coeffs_x_tmp, coeffs_y_tmp, A_tmp, normvectors_tmp = tph.calc_splines.\
-            calc_splines(path=refline_tmp_cl,
-                         use_dist_scaling=False)
-
-        # calculate spline lengths
-        spline_len_tmp = tph.calc_spline_lengths.calc_spline_lengths(coeffs_x=coeffs_x_tmp, coeffs_y=coeffs_y_tmp)
-
-        # calculate heading, curvature, and first derivative of curvature (analytically)
-        psi_reftrack_tmp, kappa_reftrack_tmp, dkappa_reftrack_tmp = tph.calc_head_curv_an.calc_head_curv_an(
-            coeffs_x=coeffs_x_tmp,
-            coeffs_y=coeffs_y_tmp,
-            ind_spls=np.arange(reftrack_tmp.shape[0]),
-            t_spls=np.zeros(reftrack_tmp.shape[0]),
-            calc_dcurv=True
+        coeffs_x_tmp, coeffs_y_tmp, A_tmp, normvectors_tmp = (
+            tph.calc_splines.calc_splines(path=refline_tmp_cl, use_dist_scaling=False)
         )
 
-    return alpha_mincurv_tmp, reftrack_tmp, normvectors_tmp, spline_len_tmp, psi_reftrack_tmp, kappa_reftrack_tmp,\
-           dkappa_reftrack_tmp
+        # calculate spline lengths
+        spline_len_tmp = tph.calc_spline_lengths.calc_spline_lengths(
+            coeffs_x=coeffs_x_tmp, coeffs_y=coeffs_y_tmp
+        )
+
+        # calculate heading, curvature, and first derivative of curvature (analytically)
+        psi_reftrack_tmp, kappa_reftrack_tmp, dkappa_reftrack_tmp = (
+            tph.calc_head_curv_an.calc_head_curv_an(
+                coeffs_x=coeffs_x_tmp,
+                coeffs_y=coeffs_y_tmp,
+                ind_spls=np.arange(reftrack_tmp.shape[0]),
+                t_spls=np.zeros(reftrack_tmp.shape[0]),
+                calc_dcurv=True,
+            )
+        )
+
+    return (
+        alpha_mincurv_tmp,
+        reftrack_tmp,
+        normvectors_tmp,
+        spline_len_tmp,
+        psi_reftrack_tmp,
+        kappa_reftrack_tmp,
+        dkappa_reftrack_tmp,
+    )
 
 
 # testing --------------------------------------------------------------------------------------------------------------

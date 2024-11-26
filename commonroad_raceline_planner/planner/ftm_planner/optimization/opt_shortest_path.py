@@ -7,10 +7,10 @@ from commonroad_raceline_planner.planner.ftm_planner.ftm_dto import DtoFTM
 
 
 def opt_shortest_path(
-        reftrack: DtoFTM,
-          normvectors: np.ndarray,
-          vehicle_width: float,
-          print_debug: bool = False
+    reftrack: DtoFTM,
+    normvectors: np.ndarray,
+    vehicle_width: float,
+    print_debug: bool = False,
 ) -> np.ndarray:
     """
     Shortest path optimization
@@ -34,7 +34,7 @@ def opt_shortest_path(
     dev_max_right[dev_max_right < 0.001] = 0.001
     dev_max_left[dev_max_left < 0.001] = 0.001
 
-    ## Optimization variables
+    # Optimization variables
     # H = symmetric cost matrix
     H = np.zeros((num_points, num_points))
     # f = quadratic cost vector
@@ -46,29 +46,64 @@ def opt_shortest_path(
 
     for i in range(num_points):
         if i < num_points - 1:
-            H[i, i] += 2 * (math.pow(normvectors[i, 0], 2) + math.pow(normvectors[i, 1], 2))
-            H[i, i + 1] = 0.5 * 2 * (-2 * normvectors[i, 0] * normvectors[i + 1, 0]
-                                     - 2 * normvectors[i, 1] * normvectors[i + 1, 1])
+            H[i, i] += 2 * (
+                math.pow(normvectors[i, 0], 2) + math.pow(normvectors[i, 1], 2)
+            )
+            H[i, i + 1] = (
+                0.5
+                * 2
+                * (
+                    -2 * normvectors[i, 0] * normvectors[i + 1, 0]
+                    - 2 * normvectors[i, 1] * normvectors[i + 1, 1]
+                )
+            )
             H[i + 1, i] = H[i, i + 1]
-            H[i + 1, i + 1] = 2 * (math.pow(normvectors[i + 1, 0], 2) + math.pow(normvectors[i + 1, 1], 2))
+            H[i + 1, i + 1] = 2 * (
+                math.pow(normvectors[i + 1, 0], 2) + math.pow(normvectors[i + 1, 1], 2)
+            )
 
-            f[i] += 2 * normvectors[i, 0] * reftrack.x_m[i] - 2 * reftrack.x_m[i]  * reftrack.x_m[i+1]  \
-                    + 2 * normvectors[i, 1] * reftrack.y_m[i] - 2 * reftrack.y_m[i] * reftrack.y_m[i+1]
-            f[i + 1] = -2 * normvectors[i + 1, 0] * reftrack.x_m[i] \
-                       - 2 * normvectors[i + 1, 1] * reftrack.y_m[i] \
-                       + 2 * normvectors[i + 1, 0] * reftrack.x_m[i+1] \
-                       + 2 * normvectors[i + 1, 1] * reftrack.y_m[i+1]
+            f[i] += (
+                2 * normvectors[i, 0] * reftrack.x_m[i]
+                - 2 * reftrack.x_m[i] * reftrack.x_m[i + 1]
+                + 2 * normvectors[i, 1] * reftrack.y_m[i]
+                - 2 * reftrack.y_m[i] * reftrack.y_m[i + 1]
+            )
+            f[i + 1] = (
+                -2 * normvectors[i + 1, 0] * reftrack.x_m[i]
+                - 2 * normvectors[i + 1, 1] * reftrack.y_m[i]
+                + 2 * normvectors[i + 1, 0] * reftrack.x_m[i + 1]
+                + 2 * normvectors[i + 1, 1] * reftrack.y_m[i + 1]
+            )
 
         else:
-            H[i, i] += 2 * (math.pow(normvectors[i, 0], 2) + math.pow(normvectors[i, 1], 2))
-            H[i, 0] = 0.5 * 2 * (-2 * normvectors[i, 0] * normvectors[0, 0] - 2 * normvectors[i, 1] * normvectors[0, 1])
+            H[i, i] += 2 * (
+                math.pow(normvectors[i, 0], 2) + math.pow(normvectors[i, 1], 2)
+            )
+            H[i, 0] = (
+                0.5
+                * 2
+                * (
+                    -2 * normvectors[i, 0] * normvectors[0, 0]
+                    - 2 * normvectors[i, 1] * normvectors[0, 1]
+                )
+            )
             H[0, i] = H[i, 0]
-            H[0, 0] += 2 * (math.pow(normvectors[0, 0], 2) + math.pow(normvectors[0, 1], 2))
+            H[0, 0] += 2 * (
+                math.pow(normvectors[0, 0], 2) + math.pow(normvectors[0, 1], 2)
+            )
 
-            f[i] += 2 * normvectors[i, 0] * reftrack.x_m[i] - 2 * normvectors[i, 0] * reftrack.x_m[0] \
-                    + 2 * normvectors[i, 1] * reftrack.y_m[i] - 2 * normvectors[i, 1] * reftrack.y_m[0]
-            f[0] += -2 * normvectors[0, 0] * reftrack.x_m[i] - 2 * normvectors[0, 1] * reftrack.y_m[i]\
-                    + 2 * normvectors[0, 0] * reftrack.x_m[0] + 2 * normvectors[0, 1] * reftrack.y_m[0]
+            f[i] += (
+                2 * normvectors[i, 0] * reftrack.x_m[i]
+                - 2 * normvectors[i, 0] * reftrack.x_m[0]
+                + 2 * normvectors[i, 1] * reftrack.y_m[i]
+                - 2 * normvectors[i, 1] * reftrack.y_m[0]
+            )
+            f[0] += (
+                -2 * normvectors[0, 0] * reftrack.x_m[i]
+                - 2 * normvectors[0, 1] * reftrack.y_m[i]
+                + 2 * normvectors[0, 0] * reftrack.x_m[0]
+                + 2 * normvectors[0, 1] * reftrack.y_m[0]
+            )
 
     # save start time
     t_start = time.perf_counter()
@@ -78,21 +113,17 @@ def opt_shortest_path(
 
     # print runtime into console window
     if print_debug:
-        print("Solver runtime opt_shortest_path: " + "{:.3f}".format(time.perf_counter() - t_start) + "s")
+        print(
+            "Solver runtime opt_shortest_path: "
+            + "{:.3f}".format(time.perf_counter() - t_start)
+            + "s"
+        )
 
     return lateral_shifts
 
 
-
-
-
-
-
 def old_opt_shortest_path(
-        reftrack: DtoFTM,
-          normvectors: np.ndarray,
-          w_veh: float,
-          print_debug: bool = False
+    reftrack: DtoFTM, normvectors: np.ndarray, w_veh: float, print_debug: bool = False
 ) -> np.ndarray:
     """
     author:
@@ -144,36 +175,70 @@ def old_opt_shortest_path(
 
     for i in range(no_points):
         if i < no_points - 1:
-            H[i, i] += 2 * (math.pow(normvectors[i, 0], 2) + math.pow(normvectors[i, 1], 2))
-            H[i, i + 1] = 0.5 * 2 * (-2 * normvectors[i, 0] * normvectors[i + 1, 0]
-                                     - 2 * normvectors[i, 1] * normvectors[i + 1, 1])
+            H[i, i] += 2 * (
+                math.pow(normvectors[i, 0], 2) + math.pow(normvectors[i, 1], 2)
+            )
+            H[i, i + 1] = (
+                0.5
+                * 2
+                * (
+                    -2 * normvectors[i, 0] * normvectors[i + 1, 0]
+                    - 2 * normvectors[i, 1] * normvectors[i + 1, 1]
+                )
+            )
             H[i + 1, i] = H[i, i + 1]
-            H[i + 1, i + 1] = 2 * (math.pow(normvectors[i + 1, 0], 2) + math.pow(normvectors[i + 1, 1], 2))
+            H[i + 1, i + 1] = 2 * (
+                math.pow(normvectors[i + 1, 0], 2) + math.pow(normvectors[i + 1, 1], 2)
+            )
 
-            f[i] += 2 * normvectors[i, 0] * reftrack[i, 0] - 2 * normvectors[i, 0] * reftrack[i + 1, 0] \
-                    + 2 * normvectors[i, 1] * reftrack[i, 1] - 2 * normvectors[i, 1] * reftrack[i + 1, 1]
-            f[i + 1] = -2 * normvectors[i + 1, 0] * reftrack[i, 0] \
-                       - 2 * normvectors[i + 1, 1] * reftrack[i, 1] \
-                       + 2 * normvectors[i + 1, 0] * reftrack[i + 1, 0] \
-                       + 2 * normvectors[i + 1, 1] * reftrack[i + 1, 1]
+            f[i] += (
+                2 * normvectors[i, 0] * reftrack[i, 0]
+                - 2 * normvectors[i, 0] * reftrack[i + 1, 0]
+                + 2 * normvectors[i, 1] * reftrack[i, 1]
+                - 2 * normvectors[i, 1] * reftrack[i + 1, 1]
+            )
+            f[i + 1] = (
+                -2 * normvectors[i + 1, 0] * reftrack[i, 0]
+                - 2 * normvectors[i + 1, 1] * reftrack[i, 1]
+                + 2 * normvectors[i + 1, 0] * reftrack[i + 1, 0]
+                + 2 * normvectors[i + 1, 1] * reftrack[i + 1, 1]
+            )
 
         else:
-            H[i, i] += 2 * (math.pow(normvectors[i, 0], 2) + math.pow(normvectors[i, 1], 2))
-            H[i, 0] = 0.5 * 2 * (-2 * normvectors[i, 0] * normvectors[0, 0] - 2 * normvectors[i, 1] * normvectors[0, 1])
+            H[i, i] += 2 * (
+                math.pow(normvectors[i, 0], 2) + math.pow(normvectors[i, 1], 2)
+            )
+            H[i, 0] = (
+                0.5
+                * 2
+                * (
+                    -2 * normvectors[i, 0] * normvectors[0, 0]
+                    - 2 * normvectors[i, 1] * normvectors[0, 1]
+                )
+            )
             H[0, i] = H[i, 0]
-            H[0, 0] += 2 * (math.pow(normvectors[0, 0], 2) + math.pow(normvectors[0, 1], 2))
+            H[0, 0] += 2 * (
+                math.pow(normvectors[0, 0], 2) + math.pow(normvectors[0, 1], 2)
+            )
 
-            f[i] += 2 * normvectors[i, 0] * reftrack[i, 0] - 2 * normvectors[i, 0] * reftrack[0, 0] \
-                    + 2 * normvectors[i, 1] * reftrack[i, 1] - 2 * normvectors[i, 1] * reftrack[0, 1]
-            f[0] += -2 * normvectors[0, 0] * reftrack[i, 0] - 2 * normvectors[0, 1] * reftrack[i, 1] \
-                    + 2 * normvectors[0, 0] * reftrack[0, 0] + 2 * normvectors[0, 1] * reftrack[0, 1]
+            f[i] += (
+                2 * normvectors[i, 0] * reftrack[i, 0]
+                - 2 * normvectors[i, 0] * reftrack[0, 0]
+                + 2 * normvectors[i, 1] * reftrack[i, 1]
+                - 2 * normvectors[i, 1] * reftrack[0, 1]
+            )
+            f[0] += (
+                -2 * normvectors[0, 0] * reftrack[i, 0]
+                - 2 * normvectors[0, 1] * reftrack[i, 1]
+                + 2 * normvectors[0, 0] * reftrack[0, 0]
+                + 2 * normvectors[0, 1] * reftrack[0, 1]
+            )
 
     # ------------------------------------------------------------------------------------------------------------------
     # CALL QUADRATIC PROGRAMMING ALGORITHM -----------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
-
     """
-    quadprog interface description taken from 
+    quadprog interface description taken from
     https://github.com/stephane-caron/qpsolvers/blob/master/qpsolvers/quadprog_.py
 
     Solve a Quadratic Program defined as:
@@ -235,7 +300,11 @@ def old_opt_shortest_path(
 
     # print runtime into console window
     if print_debug:
-        print("Solver runtime opt_shortest_path: " + "{:.3f}".format(time.perf_counter() - t_start) + "s")
+        print(
+            "Solver runtime opt_shortest_path: "
+            + "{:.3f}".format(time.perf_counter() - t_start)
+            + "s"
+        )
 
     return alpha_shpath
 

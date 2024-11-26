@@ -5,11 +5,13 @@ from pathlib import Path
 from typing import Optional, Union
 
 from commonroad_raceline_planner.configuration.base_config import BaseConfigFactory
-from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
+from commonroad_raceline_planner.configuration.ftm_config.optimization_config import (
+    OptimizationType,
+)
 
 
 @dataclass
-class DebugConfig: # Debug options
+class DebugConfig:  # Debug options
     debug: bool
 
 
@@ -34,13 +36,13 @@ class ExecutionConfigFactory(BaseConfigFactory):
     """
 
     def generate_exec_config(
-            self,
-            veh_params_file: Union[Path, str],
-            ax_max_machines_file: Union[Path, str],
-            ggv_file: Union[Path, str],
-            optimization_type: OptimizationType,
-            min_track_width: Optional[float] = None,
-            debug: bool = False,
+        self,
+        veh_params_file: Union[Path, str],
+        ax_max_machines_file: Union[Path, str],
+        ggv_file: Union[Path, str],
+        optimization_type: OptimizationType,
+        min_track_width: Optional[float] = None,
+        debug: bool = False,
     ) -> ExecutionConfig:
         """
         Generates Optimization Config from racecar ini
@@ -63,18 +65,5 @@ class ExecutionConfigFactory(BaseConfigFactory):
             debug_config=debug_config,
             filepath_config=filepath_config,
             optimization_type=optimization_type,
-            min_track_width=min_track_width
+            min_track_width=min_track_width,
         )
-
-
-
-
-
-
-
-
-
-
-
-
-

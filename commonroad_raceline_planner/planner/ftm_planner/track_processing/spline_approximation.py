@@ -3,34 +3,40 @@ from scipy import optimize
 from scipy import spatial
 import numpy as np
 import math
-from commonroad_raceline_planner.planner.ftm_planner.track_processing import LinearInterpolationLayer
-from commonroad_raceline_planner.planner.ftm_planner.track_processing import SplineApproxLayer
+from commonroad_raceline_planner.planner.ftm_planner.track_processing import (
+    LinearInterpolationLayer,
+)
+from commonroad_raceline_planner.planner.ftm_planner.track_processing import (
+    SplineApproxLayer,
+)
 from commonroad_raceline_planner.ractetrack import RaceTrack, DtoFTM
-from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.interp_track import interp_track
-from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.side_of_line import side_of_line
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.interp_track import (
+    interp_track,
+)
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.side_of_line import (
+    side_of_line,
+)
 
 
 def spline_approximation(
-        track: DtoFTM,
-         k_reg: int = 3,
-         s_reg: int = 10,
-         stepsize_prep: float = 1.0,
-         stepsize_reg: float = 3.0,
-         debug: bool = False
+    track: DtoFTM,
+    k_reg: int = 3,
+    s_reg: int = 10,
+    stepsize_prep: float = 1.0,
+    stepsize_reg: float = 3.0,
+    debug: bool = False,
 ) -> DtoFTM:
-    """
-    """
+    """ """
 
     # close race track if not already done
     track.close_racetrack()
 
     # liner interpolation
-    interpolated_track: DtoFTM = LinearInterpolationLayer().linear_interpolate_racetrack(
-        dto_racetrack=track,
-        interpol_stepsize=stepsize_prep,
-        return_new_instance=True
+    interpolated_track: (
+        DtoFTM
+    ) = LinearInterpolationLayer().linear_interpolate_racetrack(
+        dto_racetrack=track, interpol_stepsize=stepsize_prep, return_new_instance=True
     )
-
 
     spline_track: DtoFTM = SplineApproxLayer().spline_approximation(
         dto_racetrack=track,
@@ -38,24 +44,20 @@ def spline_approximation(
         k_reg=k_reg,
         s_reg=s_reg,
         stepsize_reg=stepsize_reg,
-        debug=debug
+        debug=debug,
     )
 
     return spline_track
 
 
-
-
-
-
-
-
-def old_spline_approximation(track: RaceTrack,
-                         k_reg: int = 3,
-                         s_reg: int = 10,
-                         stepsize_prep: float = 1.0,
-                         stepsize_reg: float = 3.0,
-                         debug: bool = False) -> np.ndarray:
+def old_spline_approximation(
+    track: RaceTrack,
+    k_reg: int = 3,
+    s_reg: int = 10,
+    stepsize_prep: float = 1.0,
+    stepsize_reg: float = 3.0,
+    debug: bool = False,
+) -> np.ndarray:
     """
     author:
     Fabian Christ
@@ -103,61 +105,79 @@ def old_spline_approximation(track: RaceTrack,
     # create closed track (original track)
     track_cl = np.vstack((track, track[0]))
     no_points_track_cl = track_cl.shape[0]
-    el_lengths_cl = np.sqrt(np.sum(np.power(np.diff(track_cl[:, :2], axis=0), 2), axis=1))
+    el_lengths_cl = np.sqrt(
+        np.sum(np.power(np.diff(track_cl[:, :2], axis=0), 2), axis=1)
+    )
     dists_cum_cl = np.cumsum(el_lengths_cl)
     dists_cum_cl = np.insert(dists_cum_cl, 0, 0.0)
 
     # find B spline representation of the inserted path and smooth it in this process
     # (tck_cl: tuple (vector of knots, the B-spline coefficients, and the degree of the spline))
-    tck_cl, t_glob_cl = interpolate.splprep([track_interp_cl[:, 0], track_interp_cl[:, 1]],
-                                            k=k_reg,
-                                            s=s_reg,
-                                            per=1)[:2]
+    tck_cl, t_glob_cl = interpolate.splprep(
+        [track_interp_cl[:, 0], track_interp_cl[:, 1]], k=k_reg, s=s_reg, per=1
+    )[:2]
 
     # calculate total length of smooth approximating spline based on euclidian distance with points at every 0.25m
     no_points_lencalc_cl = math.ceil(dists_cum_cl[-1]) * 4
-    path_smoothed_tmp = np.array(interpolate.splev(np.linspace(0.0, 1.0, no_points_lencalc_cl), tck_cl)).T
-    len_path_smoothed_tmp = np.sum(np.sqrt(np.sum(np.power(np.diff(path_smoothed_tmp, axis=0), 2), axis=1)))
+    path_smoothed_tmp = np.array(
+        interpolate.splev(np.linspace(0.0, 1.0, no_points_lencalc_cl), tck_cl)
+    ).T
+    len_path_smoothed_tmp = np.sum(
+        np.sqrt(np.sum(np.power(np.diff(path_smoothed_tmp, axis=0), 2), axis=1))
+    )
 
     # get smoothed path
     no_points_reg_cl = math.ceil(len_path_smoothed_tmp / stepsize_reg) + 1
-    path_smoothed = np.array(interpolate.splev(np.linspace(0.0, 1.0, no_points_reg_cl), tck_cl)).T[:-1]
+    path_smoothed = np.array(
+        interpolate.splev(np.linspace(0.0, 1.0, no_points_reg_cl), tck_cl)
+    ).T[:-1]
 
     # ------------------------------------------------------------------------------------------------------------------
     # PROCESS TRACK WIDTHS (AND BANKING ANGLE IF GIVEN) ----------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
     # find the closest points on the B spline to input points
-    dists_cl = np.zeros(no_points_track_cl)                 # contains (min) distances between input points and spline
-    closest_point_cl = np.zeros((no_points_track_cl, 2))    # contains the closest points on the spline
-    closest_t_glob_cl = np.zeros(no_points_track_cl)        # containts the t_glob values for closest points
-    t_glob_guess_cl = dists_cum_cl / dists_cum_cl[-1]       # start guess for the minimization
+    dists_cl = np.zeros(
+        no_points_track_cl
+    )  # contains (min) distances between input points and spline
+    closest_point_cl = np.zeros(
+        (no_points_track_cl, 2)
+    )  # contains the closest points on the spline
+    closest_t_glob_cl = np.zeros(
+        no_points_track_cl
+    )  # containts the t_glob values for closest points
+    t_glob_guess_cl = (
+        dists_cum_cl / dists_cum_cl[-1]
+    )  # start guess for the minimization
 
     for i in range(no_points_track_cl):
         # get t_glob value for the point on the B spline with a minimum distance to the input points
-        closest_t_glob_cl[i] = optimize.fmin(dist_to_p,
-                                             x0=t_glob_guess_cl[i],
-                                             args=(tck_cl, track_cl[i, :2]),
-                                             disp=False)
+        closest_t_glob_cl[i] = optimize.fmin(
+            dist_to_p, x0=t_glob_guess_cl[i], args=(tck_cl, track_cl[i, :2]), disp=False
+        )
 
         # evaluate B spline on the basis of t_glob to obtain the closest point
         closest_point_cl[i] = interpolate.splev(closest_t_glob_cl[i], tck_cl)
 
         # save distance from closest point to input point
-        dists_cl[i] = math.sqrt(math.pow(closest_point_cl[i, 0] - track_cl[i, 0], 2)
-                                + math.pow(closest_point_cl[i, 1] - track_cl[i, 1], 2))
+        dists_cl[i] = math.sqrt(
+            math.pow(closest_point_cl[i, 0] - track_cl[i, 0], 2)
+            + math.pow(closest_point_cl[i, 1] - track_cl[i, 1], 2)
+        )
 
     if debug:
-        print("Spline approximation: mean deviation %.2fm, maximum deviation %.2fm"
-              % (float(np.mean(dists_cl)), float(np.amax(np.abs(dists_cl)))))
+        print(
+            "Spline approximation: mean deviation %.2fm, maximum deviation %.2fm"
+            % (float(np.mean(dists_cl)), float(np.amax(np.abs(dists_cl))))
+        )
 
     # get side of smoothed track compared to the inserted track
     sides = np.zeros(no_points_track_cl - 1)
 
     for i in range(no_points_track_cl - 1):
-        sides[i] = side_of_line(a=track_cl[i, :2],
-                             b=track_cl[i+1, :2],
-                             z=closest_point_cl[i])
+        sides[i] = side_of_line(
+            a=track_cl[i, :2], b=track_cl[i + 1, :2], z=closest_point_cl[i]
+        )
 
     sides_cl = np.hstack((sides, sides[0]))
 
@@ -166,14 +186,22 @@ def old_spline_approximation(track: RaceTrack,
     w_tr_left_new_cl = track_cl[:, 3] - sides_cl * dists_cl
 
     # interpolate track widths after smoothing (linear)
-    w_tr_right_smoothed_cl = np.interp(np.linspace(0.0, 1.0, no_points_reg_cl), closest_t_glob_cl, w_tr_right_new_cl)
-    w_tr_left_smoothed_cl = np.interp(np.linspace(0.0, 1.0, no_points_reg_cl), closest_t_glob_cl, w_tr_left_new_cl)
+    w_tr_right_smoothed_cl = np.interp(
+        np.linspace(0.0, 1.0, no_points_reg_cl), closest_t_glob_cl, w_tr_right_new_cl
+    )
+    w_tr_left_smoothed_cl = np.interp(
+        np.linspace(0.0, 1.0, no_points_reg_cl), closest_t_glob_cl, w_tr_left_new_cl
+    )
 
-    track_reg = np.column_stack((path_smoothed, w_tr_right_smoothed_cl[:-1], w_tr_left_smoothed_cl[:-1]))
+    track_reg = np.column_stack(
+        (path_smoothed, w_tr_right_smoothed_cl[:-1], w_tr_left_smoothed_cl[:-1])
+    )
 
     # interpolate banking if given (linear)
     if track_cl.shape[1] == 5:
-        banking_smoothed_cl = np.interp(np.linspace(0.0, 1.0, no_points_reg_cl), closest_t_glob_cl, track_cl[:, 4])
+        banking_smoothed_cl = np.interp(
+            np.linspace(0.0, 1.0, no_points_reg_cl), closest_t_glob_cl, track_cl[:, 4]
+        )
         track_reg = np.column_stack((track_reg, banking_smoothed_cl[:-1]))
 
     return track_reg
@@ -182,6 +210,7 @@ def old_spline_approximation(track: RaceTrack,
 # ----------------------------------------------------------------------------------------------------------------------
 # DISTANCE CALCULATION FOR OPTIMIZATION --------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
+
 
 # return distance from point p to a point on the spline at spline parameter t_glob
 def dist_to_p(t_glob: np.ndarray, path: list, p: np.ndarray):

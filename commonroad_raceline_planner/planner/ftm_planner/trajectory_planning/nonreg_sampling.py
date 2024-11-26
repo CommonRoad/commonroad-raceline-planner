@@ -2,9 +2,9 @@ import numpy as np
 import trajectory_planning_helpers as tph
 
 
-def nonreg_sampling(track: np.ndarray,
-                    eps_kappa: float = 1e-3,
-                    step_non_reg: int = 0) -> tuple:
+def nonreg_sampling(
+    track: np.ndarray, eps_kappa: float = 1e-3, step_non_reg: int = 0
+) -> tuple:
     """
     author:
     Thomas Herrmann
@@ -37,10 +37,12 @@ def nonreg_sampling(track: np.ndarray,
     # calculate curvature (required to be able to differentiate straight and corner sections)
     path_cl = np.vstack((track[:, :2], track[0, :2]))
     coeffs_x, coeffs_y = tph.calc_splines.calc_splines(path=path_cl)[:2]
-    kappa_path = tph.calc_head_curv_an.calc_head_curv_an(coeffs_x=coeffs_x,
-                                                         coeffs_y=coeffs_y,
-                                                         ind_spls=np.arange(0, coeffs_x.shape[0]),
-                                                         t_spls=np.zeros(coeffs_x.shape[0]))[1]
+    kappa_path = tph.calc_head_curv_an.calc_head_curv_an(
+        coeffs_x=coeffs_x,
+        coeffs_y=coeffs_y,
+        ind_spls=np.arange(0, coeffs_x.shape[0]),
+        t_spls=np.zeros(coeffs_x.shape[0]),
+    )[1]
 
     # run through the profile to determine the indices of the points that are kept
     idx_latest = step_non_reg + 1

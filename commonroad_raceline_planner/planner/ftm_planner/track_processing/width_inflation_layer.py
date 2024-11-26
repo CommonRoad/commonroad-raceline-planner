@@ -1,7 +1,9 @@
 import copy
 import warnings
 
-from commonroad_raceline_planner.planner.ftm_planner.track_processing.base_layer import BaseRacetrackLayer
+from commonroad_raceline_planner.planner.ftm_planner.track_processing.base_layer import (
+    BaseRacetrackLayer,
+)
 from commonroad_raceline_planner.planner.ftm_planner.ftm_dto import DtoFTM
 
 
@@ -11,12 +13,11 @@ class WidthInflationLayer(BaseRacetrackLayer):
     """
 
     def inflate_width(
-            self,
-            dto_racetrack: DtoFTM,
-            mininmum_track_width: float,
-            return_new_instance: bool,
-            close_track: bool = True,
-
+        self,
+        dto_racetrack: DtoFTM,
+        mininmum_track_width: float,
+        return_new_instance: bool,
+        close_track: bool = True,
     ) -> DtoFTM:
         """
         Inflates track boundaries to have minimum width
@@ -38,7 +39,9 @@ class WidthInflationLayer(BaseRacetrackLayer):
         # ENFORCE MINIMUM TRACK WIDTH (INFLATE TIGHTER SECTIONS UNTIL REACHED)
         manipulation_flag: bool = False
         for i in range(inflated_track.x_m.shape[0]):
-            cur_width: float = inflated_track.w_tr_left_m[i] + inflated_track.w_tr_right_m[i]
+            cur_width: float = (
+                inflated_track.w_tr_left_m[i] + inflated_track.w_tr_right_m[i]
+            )
 
             if cur_width < mininmum_track_width:
                 manipulation_flag = True

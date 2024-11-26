@@ -1,10 +1,12 @@
 import numpy as np
 
 
-def interp_track_widths(w_track: np.ndarray,
-                        spline_inds: np.ndarray,
-                        t_values: np.ndarray,
-                        incl_last_point: bool = False) -> np.ndarray:
+def interp_track_widths(
+    w_track: np.ndarray,
+    spline_inds: np.ndarray,
+    t_values: np.ndarray,
+    incl_last_point: bool = False,
+) -> np.ndarray:
     """
     author:
     Alexander Heilmeier
@@ -53,11 +55,17 @@ def interp_track_widths(w_track: np.ndarray,
         ind_spl = spline_inds[i]
 
         # calculate track widths (linear approximation assumed along one spline)
-        w_track_interp[i, 0] = np.interp(t_values[i], (0.0, 1.0), w_track_cl[ind_spl:ind_spl + 2, 0])
-        w_track_interp[i, 1] = np.interp(t_values[i], (0.0, 1.0), w_track_cl[ind_spl:ind_spl + 2, 1])
+        w_track_interp[i, 0] = np.interp(
+            t_values[i], (0.0, 1.0), w_track_cl[ind_spl : ind_spl + 2, 0]
+        )
+        w_track_interp[i, 1] = np.interp(
+            t_values[i], (0.0, 1.0), w_track_cl[ind_spl : ind_spl + 2, 1]
+        )
 
         if w_track.shape[1] == 3:
-            w_track_interp[i, 2] = np.interp(t_values[i], (0.0, 1.0), w_track_cl[ind_spl:ind_spl + 2, 2])
+            w_track_interp[i, 2] = np.interp(
+                t_values[i], (0.0, 1.0), w_track_cl[ind_spl : ind_spl + 2, 2]
+            )
 
     return w_track_interp
 

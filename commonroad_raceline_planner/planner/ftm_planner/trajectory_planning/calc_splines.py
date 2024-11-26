@@ -2,11 +2,13 @@ import numpy as np
 import math
 
 
-def calc_splines(path: np.ndarray,
-                 el_lengths: np.ndarray = None,
-                 psi_s: float = None,
-                 psi_e: float = None,
-                 use_dist_scaling: bool = True) -> tuple:
+def calc_splines(
+    path: np.ndarray,
+    el_lengths: np.ndarray = None,
+    psi_s: float = None,
+    psi_e: float = None,
+    use_dist_scaling: bool = True,
+) -> tuple:
     """
     author:
     Tim Stahl & Alexander Heilmeier
@@ -68,7 +70,9 @@ def calc_splines(path: np.ndarray,
         raise RuntimeError("Headings must be provided for unclosed spline calculation!")
 
     if el_lengths is not None and path.shape[0] != el_lengths.size + 1:
-        raise RuntimeError("el_lengths input must be one element smaller than path input!")
+        raise RuntimeError(
+            "el_lengths input must be one element smaller than path input!"
+        )
 
     # if distances between path coordinates are not provided but required, calculate euclidean distances as el_lengths
     if use_dist_scaling and el_lengths is None:
@@ -106,30 +110,59 @@ def calc_splines(path: np.ndarray,
     # row 3: heading at end of current spline should be equal to heading at beginning of next spline (t = 1 and t = 0)
     # row 4: curvature at end of current spline should be equal to curvature at beginning of next spline (t = 1 and
     #        t = 0)
-    template_M = np.array(                          # current point               | next point              | bounds
-                [[1,  0,  0,  0,  0,  0,  0,  0],   # a_0i                                                  = {x,y}_i
-                 [1,  1,  1,  1,  0,  0,  0,  0],   # a_0i + a_1i +  a_2i +  a_3i                           = {x,y}_i+1
-                 [0,  1,  2,  3,  0, -1,  0,  0],   # _      a_1i + 2a_2i + 3a_3i      - a_1i+1             = 0
-                 [0,  0,  2,  6,  0,  0, -2,  0]])  # _             2a_2i + 6a_3i               - 2a_2i+1   = 0
+    template_M = (
+        np.array(  # current point               | next point              | bounds
+            [
+                [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                ],  # a_0i                                                  = {x,y}_i
+                [
+                    1,
+                    1,
+                    1,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                ],  # a_0i + a_1i +  a_2i +  a_3i                           = {x,y}_i+1
+                [
+                    0,
+                    1,
+                    2,
+                    3,
+                    0,
+                    -1,
+                    0,
+                    0,
+                ],  # _      a_1i + 2a_2i + 3a_3i      - a_1i+1             = 0
+                [0, 0, 2, 6, 0, 0, -2, 0],
+            ]
+        )
+    )  # _             2a_2i + 6a_3i               - 2a_2i+1   = 0
 
     for i in range(no_splines):
         j = i * 4
 
         if i < no_splines - 1:
-            M[j: j + 4, j: j + 8] = template_M
+            M[j : j + 4, j : j + 8] = template_M
 
             M[j + 2, j + 5] *= scaling[i]
             M[j + 3, j + 6] *= math.pow(scaling[i], 2)
 
         else:
             # no curvature and heading bounds on last element (handled afterwards)
-            M[j: j + 2, j: j + 4] = [[1,  0,  0,  0],
-                                     [1,  1,  1,  1]]
+            M[j : j + 2, j : j + 4] = [[1, 0, 0, 0], [1, 1, 1, 1]]
 
-        b_x[j: j + 2] = [[path[i,     0]],
-                         [path[i + 1, 0]]]
-        b_y[j: j + 2] = [[path[i,     1]],
-                         [path[i + 1, 1]]]
+        b_x[j : j + 2] = [[path[i, 0]], [path[i + 1, 0]]]
+        b_y[j : j + 2] = [[path[i, 1]], [path[i + 1, 1]]]
 
     # ------------------------------------------------------------------------------------------------------------------
     # SET BOUNDARY CONDITIONS FOR LAST AND FIRST POINT -----------------------------------------------------------------
@@ -178,7 +211,9 @@ def calc_splines(path: np.ndarray,
     # SOLVE ------------------------------------------------------------------------------------------------------------
     # ------------------------------------------------------------------------------------------------------------------
 
-    x_les = np.squeeze(np.linalg.solve(M, b_x))  # squeeze removes single-dimensional entries
+    x_les = np.squeeze(
+        np.linalg.solve(M, b_x)
+    )  # squeeze removes single-dimensional entries
     y_les = np.squeeze(np.linalg.solve(M, b_y))
 
     # get coefficients of every piece into one row -> reshape
@@ -201,21 +236,24 @@ if __name__ == "__main__":
     import os
     import sys
     import matplotlib.pyplot as plt
+
     sys.path.append(os.path.dirname(__file__))
     from interp_splines import interp_splines
 
     path_coords = np.array([[50.0, 10.0], [10.0, 4.0], [0.0, 0.0]])
     psi_s_ = np.pi / 2.0
     psi_e_ = np.pi / 1.3
-    coeffs_x_, coeffs_y_ = calc_splines(path=path_coords,
-                                        psi_s=psi_s_,
-                                        psi_e=psi_e_)[0:2]
+    coeffs_x_, coeffs_y_ = calc_splines(path=path_coords, psi_s=psi_s_, psi_e=psi_e_)[
+        0:2
+    ]
 
-    path_interp = interp_splines(coeffs_x=coeffs_x_,
-                                 coeffs_y=coeffs_y_,
-                                 incl_last_point=True,
-                                 stepsize_approx=0.5)[0]
+    path_interp = interp_splines(
+        coeffs_x=coeffs_x_,
+        coeffs_y=coeffs_y_,
+        incl_last_point=True,
+        stepsize_approx=0.5,
+    )[0]
 
     plt.plot(path_interp[:, 0], path_interp[:, 1])
-    plt.axis('equal')
+    plt.axis("equal")
     plt.show()

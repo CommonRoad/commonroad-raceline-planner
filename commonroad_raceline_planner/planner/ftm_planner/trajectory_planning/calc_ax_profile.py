@@ -1,9 +1,9 @@
 import numpy as np
 
 
-def calc_ax_profile(vx_profile: np.ndarray,
-                    el_lengths: np.ndarray,
-                    eq_length_output: bool = False) -> np.ndarray:
+def calc_ax_profile(
+    vx_profile: np.ndarray, el_lengths: np.ndarray, eq_length_output: bool = False
+) -> np.ndarray:
     """
     author:
     Alexander Heilmeier
@@ -34,22 +34,25 @@ def calc_ax_profile(vx_profile: np.ndarray,
 
     # check inputs
     if vx_profile.size != el_lengths.size + 1:
-        raise RuntimeError("Array size of vx_profile should be 1 element bigger than el_lengths!")
+        raise RuntimeError(
+            "Array size of vx_profile should be 1 element bigger than el_lengths!"
+        )
 
     # calculate longitudinal acceleration profile array numerically: (v_end^2 - v_beg^2) / 2*s
     if eq_length_output:
         ax_profile = np.zeros(vx_profile.size)
-        ax_profile[:-1] = (np.power(vx_profile[1:], 2) - np.power(vx_profile[:-1], 2)) / (2 * el_lengths)
+        ax_profile[:-1] = (
+            np.power(vx_profile[1:], 2) - np.power(vx_profile[:-1], 2)
+        ) / (2 * el_lengths)
     else:
-        ax_profile = (np.power(vx_profile[1:], 2) - np.power(vx_profile[:-1], 2)) / (2 * el_lengths)
-
+        ax_profile = (np.power(vx_profile[1:], 2) - np.power(vx_profile[:-1], 2)) / (
+            2 * el_lengths
+        )
 
     # TODO: improve numerical stability
     # set final value to -10
     if ax_profile[-1] < -10:
         ax_profile[-1] = -10
-
-
 
     return ax_profile
 

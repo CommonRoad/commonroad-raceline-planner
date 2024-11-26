@@ -1,21 +1,19 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import copy
 
+import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib.colors import rgb2hex, Normalize
 from matplotlib import cm
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-
-from commonroad.planning.planning_problem import PlanningProblem
-from commonroad.scenario.lanelet import LaneletNetwork
-
-from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_normal_vectors import calc_normal_vectors
-from commonroad_raceline_planner.raceline import RaceLine
-
 # commonroad
 from commonroad.geometry.shape import Circle
 from commonroad.visualization.mp_renderer import MPRenderer
+from commonroad.planning.planning_problem import PlanningProblem
+from commonroad.scenario.lanelet import LaneletNetwork
+
+# own code base
+from commonroad_raceline_planner.raceline import RaceLine
 
 # typing
 from typing import List, Tuple
@@ -23,13 +21,14 @@ from typing import List, Tuple
 # cmap for coloring the velocity profile
 cmap = cm.get_cmap("plasma")
 
+
 def plot_param(
     lanelet_network: LaneletNetwork,
     planning_problem: PlanningProblem,
     race_line: RaceLine,
     title: str,
     param: np.ndarray,
-    size_x: float = 10
+    size_x: float = 10,
 ) -> None:
     """
     Plots a parameter of the raceline
@@ -81,12 +80,11 @@ def plot_param(
     plt.show()
 
 
-
 def plot_trajectory_with_all_quantities(
     lanelet_network: LaneletNetwork,
     planning_problem: PlanningProblem,
     race_line: RaceLine,
-    size_x: float = 10
+    size_x: float = 10,
 ) -> None:
     """
     Plot all quantities
@@ -99,33 +97,33 @@ def plot_trajectory_with_all_quantities(
         lanelet_network=lanelet_network,
         planning_problem=planning_problem,
         race_line=race_line,
-        size_x=size_x
+        size_x=size_x,
     )
     plot_trajectory_with_acceleration(
         lanelet_network=lanelet_network,
         planning_problem=planning_problem,
         race_line=race_line,
-        size_x=size_x
+        size_x=size_x,
     )
     plot_trajectory_with_curvature(
-            lanelet_network=lanelet_network,
-            planning_problem=planning_problem,
-            race_line=race_line,
-            size_x=size_x
-        )
+        lanelet_network=lanelet_network,
+        planning_problem=planning_problem,
+        race_line=race_line,
+        size_x=size_x,
+    )
     plot_trajectory_with_heading(
-            lanelet_network=lanelet_network,
-            planning_problem=planning_problem,
-            race_line=race_line,
-            size_x=size_x
-        )
+        lanelet_network=lanelet_network,
+        planning_problem=planning_problem,
+        race_line=race_line,
+        size_x=size_x,
+    )
 
 
 def plot_trajectory_with_velocity(
     lanelet_network: LaneletNetwork,
     planning_problem: PlanningProblem,
     race_line: RaceLine,
-    size_x: float = 10
+    size_x: float = 10,
 ) -> None:
     plot_param(
         lanelet_network=lanelet_network,
@@ -133,14 +131,15 @@ def plot_trajectory_with_velocity(
         race_line=race_line,
         param=race_line.velocity_long_per_point,
         size_x=size_x,
-        title="Velocity"
+        title="Velocity",
     )
+
 
 def plot_trajectory_with_curvature(
     lanelet_network: LaneletNetwork,
     planning_problem: PlanningProblem,
     race_line: RaceLine,
-    size_x: float = 10
+    size_x: float = 10,
 ) -> None:
     plot_param(
         lanelet_network=lanelet_network,
@@ -148,14 +147,15 @@ def plot_trajectory_with_curvature(
         race_line=race_line,
         param=race_line.curvature_per_point,
         size_x=size_x,
-        title="Curvature"
+        title="Curvature",
     )
+
 
 def plot_trajectory_with_acceleration(
     lanelet_network: LaneletNetwork,
     planning_problem: PlanningProblem,
     race_line: RaceLine,
-    size_x: float = 10
+    size_x: float = 10,
 ) -> None:
     plot_param(
         lanelet_network=lanelet_network,
@@ -163,14 +163,15 @@ def plot_trajectory_with_acceleration(
         race_line=race_line,
         param=race_line.acceleration_long_per_point,
         size_x=size_x,
-        title="Acceleration"
+        title="Acceleration",
     )
+
 
 def plot_trajectory_with_heading(
     lanelet_network: LaneletNetwork,
     planning_problem: PlanningProblem,
     race_line: RaceLine,
-    size_x: float = 10
+    size_x: float = 10,
 ) -> None:
     plot_param(
         lanelet_network=lanelet_network,
@@ -178,8 +179,9 @@ def plot_trajectory_with_heading(
         race_line=race_line,
         param=race_line.heading_per_point,
         size_x=size_x,
-        title="Heading"
+        title="Heading",
     )
+
 
 def draw_trajectory_positions(
     renderer: MPRenderer,
@@ -241,7 +243,6 @@ def obtain_plot_limits_from_reference_path(
     plot_limits = [x_min - margin, x_max + margin, y_min - margin, y_max + margin]
 
     return plot_limits
-
 
 
 # testing --------------------------------------------------------------------------------------------------------------

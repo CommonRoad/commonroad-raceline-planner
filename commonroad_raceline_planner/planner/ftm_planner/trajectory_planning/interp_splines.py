@@ -1,14 +1,18 @@
 import numpy as np
 import math
-from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_spline_lengths import calc_spline_lengths
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_spline_lengths import (
+    calc_spline_lengths,
+)
 
 
-def interp_splines(coeffs_x: np.ndarray,
-                   coeffs_y: np.ndarray,
-                   spline_lengths: np.ndarray = None,
-                   incl_last_point: bool = False,
-                   stepsize_approx: float = None,
-                   stepnum_fixed: list = None) -> tuple:
+def interp_splines(
+    coeffs_x: np.ndarray,
+    coeffs_y: np.ndarray,
+    spline_lengths: np.ndarray = None,
+    incl_last_point: bool = False,
+    stepsize_approx: float = None,
+    stepnum_fixed: list = None,
+) -> tuple:
     """
     author:
     Alexander Heilmeier & Tim Stahl
@@ -64,12 +68,17 @@ def interp_splines(coeffs_x: np.ndarray,
         raise RuntimeError("Coefficient matrices do not have two dimensions!")
 
     # check if step size specification is valid
-    if (stepsize_approx is None and stepnum_fixed is None) \
-            or (stepsize_approx is not None and stepnum_fixed is not None):
-        raise RuntimeError("Provide one of 'stepsize_approx' and 'stepnum_fixed' and set the other to 'None'!")
+    if (stepsize_approx is None and stepnum_fixed is None) or (
+        stepsize_approx is not None and stepnum_fixed is not None
+    ):
+        raise RuntimeError(
+            "Provide one of 'stepsize_approx' and 'stepnum_fixed' and set the other to 'None'!"
+        )
 
     if stepnum_fixed is not None and len(stepnum_fixed) != coeffs_x.shape[0]:
-        raise RuntimeError("The provided list 'stepnum_fixed' must hold an entry for every spline!")
+        raise RuntimeError(
+            "The provided list 'stepnum_fixed' must hold an entry for every spline!"
+        )
 
     # ------------------------------------------------------------------------------------------------------------------
     # CALCULATE NUMBER OF INTERPOLATION POINTS AND ACCORDING DISTANCES -------------------------------------------------
@@ -78,9 +87,9 @@ def interp_splines(coeffs_x: np.ndarray,
     if stepsize_approx is not None:
         # get the total distance up to the end of every spline (i.e. cumulated distances)
         if spline_lengths is None:
-            spline_lengths = calc_spline_lengths(coeffs_x=coeffs_x,
-                                                                                                 coeffs_y=coeffs_y,
-                                                                                                 quickndirty=False)
+            spline_lengths = calc_spline_lengths(
+                coeffs_x=coeffs_x, coeffs_y=coeffs_y, quickndirty=False
+            )
 
         dists_cum = np.cumsum(spline_lengths)
 
@@ -98,9 +107,11 @@ def interp_splines(coeffs_x: np.ndarray,
     # ------------------------------------------------------------------------------------------------------------------
 
     # create arrays to save the values
-    path_interp = np.zeros((no_interp_points, 2))           # raceline coords (x, y) array
-    spline_inds = np.zeros(no_interp_points, dtype=int)  # save the spline index to which a point belongs
-    t_values = np.zeros(no_interp_points)                   # save t values
+    path_interp = np.zeros((no_interp_points, 2))  # raceline coords (x, y) array
+    spline_inds = np.zeros(
+        no_interp_points, dtype=int
+    )  # save the spline index to which a point belongs
+    t_values = np.zeros(no_interp_points)  # save t values
 
     if stepsize_approx is not None:
 
@@ -124,15 +135,19 @@ def interp_splines(coeffs_x: np.ndarray,
                     t_values[i] = dists_interp[i] / spline_lengths[0]
 
             # calculate coords
-            path_interp[i, 0] = coeffs_x[j, 0] \
-                                + coeffs_x[j, 1] * t_values[i]\
-                                + coeffs_x[j, 2] * math.pow(t_values[i], 2) \
-                                + coeffs_x[j, 3] * math.pow(t_values[i], 3)
+            path_interp[i, 0] = (
+                coeffs_x[j, 0]
+                + coeffs_x[j, 1] * t_values[i]
+                + coeffs_x[j, 2] * math.pow(t_values[i], 2)
+                + coeffs_x[j, 3] * math.pow(t_values[i], 3)
+            )
 
-            path_interp[i, 1] = coeffs_y[j, 0]\
-                                + coeffs_y[j, 1] * t_values[i]\
-                                + coeffs_y[j, 2] * math.pow(t_values[i], 2) \
-                                + coeffs_y[j, 3] * math.pow(t_values[i], 3)
+            path_interp[i, 1] = (
+                coeffs_y[j, 0]
+                + coeffs_y[j, 1] * t_values[i]
+                + coeffs_y[j, 2] * math.pow(t_values[i], 2)
+                + coeffs_y[j, 3] * math.pow(t_values[i], 3)
+            )
 
     else:
 
@@ -145,23 +160,38 @@ def interp_splines(coeffs_x: np.ndarray,
         for i in range(len(stepnum_fixed)):
             # skip last point except for last segment
             if i < len(stepnum_fixed) - 1:
-                t_values[j:(j + stepnum_fixed[i] - 1)] = np.linspace(0, 1, stepnum_fixed[i])[:-1]
-                spline_inds[j:(j + stepnum_fixed[i] - 1)] = i
+                t_values[j : (j + stepnum_fixed[i] - 1)] = np.linspace(
+                    0, 1, stepnum_fixed[i]
+                )[:-1]
+                spline_inds[j : (j + stepnum_fixed[i] - 1)] = i
                 j += stepnum_fixed[i] - 1
 
             else:
-                t_values[j:(j + stepnum_fixed[i])] = np.linspace(0, 1, stepnum_fixed[i])
-                spline_inds[j:(j + stepnum_fixed[i])] = i
+                t_values[j : (j + stepnum_fixed[i])] = np.linspace(
+                    0, 1, stepnum_fixed[i]
+                )
+                spline_inds[j : (j + stepnum_fixed[i])] = i
                 j += stepnum_fixed[i]
 
-        t_set = np.column_stack((np.ones(no_interp_points), t_values, np.power(t_values, 2), np.power(t_values, 3)))
+        t_set = np.column_stack(
+            (
+                np.ones(no_interp_points),
+                t_values,
+                np.power(t_values, 2),
+                np.power(t_values, 3),
+            )
+        )
 
         # remove overlapping samples
         n_samples = np.array(stepnum_fixed)
         n_samples[:-1] -= 1
 
-        path_interp[:, 0] = np.sum(np.multiply(np.repeat(coeffs_x, n_samples, axis=0), t_set), axis=1)
-        path_interp[:, 1] = np.sum(np.multiply(np.repeat(coeffs_y, n_samples, axis=0), t_set), axis=1)
+        path_interp[:, 0] = np.sum(
+            np.multiply(np.repeat(coeffs_x, n_samples, axis=0), t_set), axis=1
+        )
+        path_interp[:, 1] = np.sum(
+            np.multiply(np.repeat(coeffs_y, n_samples, axis=0), t_set), axis=1
+        )
 
     # ------------------------------------------------------------------------------------------------------------------
     # CALCULATE LAST POINT IF REQUIRED (t = 1.0) -----------------------------------------------------------------------

@@ -5,12 +5,11 @@ from pathlib import Path
 from commonroad_raceline_planner.configuration.base_config import BaseConfigFactory
 from commonroad_raceline_planner.configuration.ftm_config.optimization_config import (
     OptimizationConfigFactory,
-    OptimizationType,
-    OptimizationConfig
+    OptimizationConfig,
 )
 from commonroad_raceline_planner.configuration.ftm_config.general_config import (
     GeneralConfigFactory,
-    GeneralConfig
+    GeneralConfig,
 )
 
 # typing
@@ -31,33 +30,29 @@ class ComputationConfigFactory(BaseConfigFactory):
     """
 
     def generate_from_racecar_ini(
-            self,
-            path_to_racecar_ini: Union[Path, str],
+        self,
+        path_to_racecar_ini: Union[Path, str],
     ) -> ComputationConfig:
 
         # TODO: remove currently doubled sanity check
         # sanity check
         if not self._sanity_check_ini(file_path=path_to_racecar_ini):
-            raise FileNotFoundError(f'Did not find .ini file at absolute path {path_to_racecar_ini}')
+            raise FileNotFoundError(
+                f"Did not find .ini file at absolute path {path_to_racecar_ini}"
+            )
 
-        general_config: GeneralConfig = GeneralConfigFactory().generate_from_racecar_ini(
+        general_config: (
+            GeneralConfig
+        ) = GeneralConfigFactory().generate_from_racecar_ini(
             path_to_racecar_ini=path_to_racecar_ini
         )
 
-        optimization_config: OptimizationConfig = OptimizationConfigFactory().generate_from_racecar_ini(
+        optimization_config: (
+            OptimizationConfig
+        ) = OptimizationConfigFactory().generate_from_racecar_ini(
             path_to_racecar_ini=path_to_racecar_ini
         )
 
         return ComputationConfig(
-            general_config=general_config,
-            optimization_config=optimization_config
+            general_config=general_config, optimization_config=optimization_config
         )
-
-
-
-
-
-
-
-
-

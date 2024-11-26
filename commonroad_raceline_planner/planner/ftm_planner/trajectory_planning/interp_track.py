@@ -1,15 +1,10 @@
-import copy
-
 import numpy as np
 import math
 
-from commonroad_raceline_planner.ractetrack import RaceTrack, DtoFTM
+from commonroad_raceline_planner.ractetrack import DtoFTM
 
 
-def interp_track(
-        track: DtoFTM,
-        stepsize: float
-) -> DtoFTM:
+def interp_track(track: DtoFTM, stepsize: float) -> DtoFTM:
     """
     close and interpolate track
     """
@@ -22,10 +17,7 @@ def interp_track(
     return track
 
 
-def old_interp_track(
-        track: np.ndarray,
-        stepsize: float
-) -> np.ndarray:
+def old_interp_track(track: np.ndarray, stepsize: float) -> np.ndarray:
     """
     author:
     Alexander Heilmeier
@@ -56,7 +48,9 @@ def old_interp_track(
     track_cl = np.vstack((track, track[0]))
 
     # calculate element lengths (euclidian distance)
-    el_lengths_cl = np.sqrt(np.sum(np.power(np.diff(track_cl[:, :2], axis=0), 2), axis=1))
+    el_lengths_cl = np.sqrt(
+        np.sum(np.power(np.diff(track_cl[:, :2], axis=0), 2), axis=1)
+    )
 
     # sum up total distance (from start) to every element
     dists_cum_cl = np.cumsum(el_lengths_cl)

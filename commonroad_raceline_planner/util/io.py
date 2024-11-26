@@ -6,11 +6,10 @@ import hashlib
 from pathlib import Path
 
 
-
 def export_traj_race(
-        traj_race: np.ndarray,
-        traj_race_export: Union[str, Path],
-        ggv_file: Optional[Union[str, Path]] = None,
+    traj_race: np.ndarray,
+    traj_race_export: Union[str, Path],
+    ggv_file: Optional[Union[str, Path]] = None,
 ) -> None:
     """
     Created by:
@@ -30,32 +29,32 @@ def export_traj_race(
 
     # hash ggv file with SHA1
     if ggv_file is not None:
-        with open(ggv_file, 'br') as fh:
+        with open(ggv_file, "br") as fh:
             ggv_content = fh.read()
     else:
         ggv_content = np.array([])
     ggv_hash = hashlib.sha1(ggv_content).hexdigest()
 
     # write UUID and GGV hash into file
-    with open(traj_race_export, 'w') as fh:
+    with open(traj_race_export, "w") as fh:
         fh.write("# " + rand_uuid + "\n")
         fh.write("# " + ggv_hash + "\n")
 
     # export race trajectory
     header = "s_m; x_m; y_m; psi_rad; kappa_radpm; vx_mps; ax_mps2"
     fmt = "%.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f"
-    with open(traj_race_export, 'ab') as fh:
+    with open(traj_race_export, "ab") as fh:
         np.savetxt(fh, traj_race, fmt=fmt, header=header)
 
 
 def export_traj_ltpl(
-        traj_ltpl_export: Union[str, Path],
-         spline_lengths_opt,
-         trajectory_opt,
-         reftrack,
-         normvec_normalized,
-         alpha_opt,
-         ggv_file: Optional[Union[Path, str]] = None,
+    traj_ltpl_export: Union[str, Path],
+    spline_lengths_opt,
+    trajectory_opt,
+    reftrack,
+    normvec_normalized,
+    alpha_opt,
+    ggv_file: Optional[Union[Path, str]] = None,
 ) -> None:
     """
     Created by:
@@ -99,14 +98,18 @@ def export_traj_ltpl(
         vx_normvec.append(trajectory_opt[idx, 5])
         ax_normvec.append(trajectory_opt[idx, 6])
 
-    traj_ltpl = np.column_stack((reftrack,
-                                 normvec_normalized,
-                                 alpha_opt,
-                                 s_raceline_preinterp_cl[:-1],
-                                 psi_normvec,
-                                 kappa_normvec,
-                                 vx_normvec,
-                                 ax_normvec))
+    traj_ltpl = np.column_stack(
+        (
+            reftrack,
+            normvec_normalized,
+            alpha_opt,
+            s_raceline_preinterp_cl[:-1],
+            psi_normvec,
+            kappa_normvec,
+            vx_normvec,
+            ax_normvec,
+        )
+    )
     traj_ltpl_cl = np.vstack((traj_ltpl, traj_ltpl[0]))
     traj_ltpl_cl[-1, 7] = s_raceline_preinterp_cl[-1]
 
@@ -115,29 +118,28 @@ def export_traj_ltpl(
 
     # hash ggv file with SHA1
     if ggv_file is not None:
-        with open(ggv_file, 'br') as fh:
+        with open(ggv_file, "br") as fh:
             ggv_content = fh.read()
     else:
         ggv_content = np.array([])
     ggv_hash = hashlib.sha1(ggv_content).hexdigest()
 
     # write UUID and GGV hash into file
-    with open(traj_ltpl_export, 'w') as fh:
+    with open(traj_ltpl_export, "w") as fh:
         fh.write("# " + rand_uuid + "\n")
         fh.write("# " + ggv_hash + "\n")
 
     # export trajectory data for local planner
-    header = "x_ref_m; y_ref_m; width_right_m; width_left_m; x_normvec_m; y_normvec_m; " \
-             "alpha_m; s_racetraj_m; psi_racetraj_rad; kappa_racetraj_radpm; vx_racetraj_mps; ax_racetraj_mps2"
+    header = (
+        "x_ref_m; y_ref_m; width_right_m; width_left_m; x_normvec_m; y_normvec_m; "
+        "alpha_m; s_racetraj_m; psi_racetraj_rad; kappa_racetraj_radpm; vx_racetraj_mps; ax_racetraj_mps2"
+    )
     fmt = "%.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f; %.7f"
-    with open(traj_ltpl_export, 'ab') as fh:
+    with open(traj_ltpl_export, "ab") as fh:
         np.savetxt(fh, traj_ltpl, fmt=fmt, header=header)
 
 
-
-def import_track(file_path: str,
-                 imp_opts: dict,
-                 width_veh: float) -> np.ndarray:
+def import_track(file_path: str, imp_opts: dict, width_veh: float) -> np.ndarray:
     """
     Created by:
     Alexander Heilmeier
@@ -157,7 +159,7 @@ def import_track(file_path: str,
     """
 
     # load data from csv file
-    csv_data_temp = np.loadtxt(file_path, comments='#', delimiter=',')
+    csv_data_temp = np.loadtxt(file_path, comments="#", delimiter=",")
 
     # get coords and track widths out of array
     if np.shape(csv_data_temp)[1] == 3:
@@ -191,14 +193,19 @@ def import_track(file_path: str,
 
     # check if imported centerline should be reordered for a new starting point
     if imp_opts["set_new_start"]:
-        ind_start = np.argmin(np.power(reftrack_imp[:, 0] - imp_opts["new_start"][0], 2)
-                              + np.power(reftrack_imp[:, 1] - imp_opts["new_start"][1], 2))
+        ind_start = np.argmin(
+            np.power(reftrack_imp[:, 0] - imp_opts["new_start"][0], 2)
+            + np.power(reftrack_imp[:, 1] - imp_opts["new_start"][1], 2)
+        )
         reftrack_imp = np.roll(reftrack_imp, reftrack_imp.shape[0] - ind_start, axis=0)
 
     # check minimum track width for vehicle width plus a small safety margin
     w_tr_min = np.amin(reftrack_imp[:, 2] + reftrack_imp[:, 3])
 
     if w_tr_min < width_veh + 0.5:
-        print("WARNING: Minimum track width %.2fm is close to or smaller than vehicle width!" % np.amin(w_tr_min))
+        print(
+            "WARNING: Minimum track width %.2fm is close to or smaller than vehicle width!"
+            % np.amin(w_tr_min)
+        )
 
     return reftrack_imp

@@ -17,6 +17,7 @@ class RaceLine:
     """
     Raceline
     """
+
     points: np.ndarray
     length_per_point: np.ndarray
     velocity_long_per_point: np.ndarray
@@ -41,12 +42,12 @@ class RaceLine:
         """
         return np.column_stack(
             (
-               self.length_per_point,
-               self.points,
-               self.heading_per_point,
-               self.curvature_per_point,
-               self.velocity_long_per_point,
-               self.acceleration_long_per_point
+                self.length_per_point,
+                self.points,
+                self.heading_per_point,
+                self.curvature_per_point,
+                self.velocity_long_per_point,
+                self.acceleration_long_per_point,
             )
         )
 
@@ -105,9 +106,8 @@ class RaceLine:
         :return: returns false if certain parameters are wrong
         """
         sanity: bool = True
-        if(
-            not
-            self.points.shape[0]
+        if (
+            not self.points.shape[0]
             == self.length_per_point.shape[0]
             == self.velocity_long_per_point.shape[0]
             == self.acceleration_long_per_point.shape[0]
@@ -133,18 +133,26 @@ class RaceLine:
         Close raceline
         """
         self.points = np.hstack((self.points, self.points[0]))
-        self.length_per_point = np.hstack((self.length_per_point, self.length_per_point[0]))
-        self.velocity_long_per_point = np.hstack((self.velocity_long_per_point, self.velocity_long_per_point[0]))
-        self.acceleration_long_per_point = np.hstack((self.acceleration_long_per_point, self.acceleration_long_per_point[0]))
-        self.curvature_per_point = np.hstack((self.curvature_per_point, self.curvature_per_point[0]))
-        self.heading_per_point = np.hstack((self.curvature_per_point, self.curvature_per_point[0]))
+        self.length_per_point = np.hstack(
+            (self.length_per_point, self.length_per_point[0])
+        )
+        self.velocity_long_per_point = np.hstack(
+            (self.velocity_long_per_point, self.velocity_long_per_point[0])
+        )
+        self.acceleration_long_per_point = np.hstack(
+            (self.acceleration_long_per_point, self.acceleration_long_per_point[0])
+        )
+        self.curvature_per_point = np.hstack(
+            (self.curvature_per_point, self.curvature_per_point[0])
+        )
+        self.heading_per_point = np.hstack(
+            (self.curvature_per_point, self.curvature_per_point[0])
+        )
         self.num_points = self.points.shape[0]
         self.sanity = self.sanity_check()
 
     def export_trajectory_to_csv_file(
-            self,
-            export_path: Union[Path, str],
-            ggv_file_path: Union[Path, str]
+        self, export_path: Union[Path, str], ggv_file_path: Union[Path, str]
     ) -> None:
         """
         Export trajectory to csv file.
@@ -154,9 +162,9 @@ class RaceLine:
         export_traj_race(
             traj_race_export=export_path,
             ggv_file=ggv_file_path,
-            traj_race=self.to_7d_np_array()
+            traj_race=self.to_7d_np_array(),
         )
-        print(f'Exported trajectory to {export_path}')
+        print(f"Exported trajectory to {export_path}")
 
 
 class RaceLineFactory:
@@ -172,7 +180,7 @@ class RaceLineFactory:
         acceleration_long_per_point: np.ndarray,
         curvature_per_point: np.ndarray,
         heading_per_point: np.ndarray,
-        closed: bool
+        closed: bool,
     ) -> RaceLine:
         """
         Generates race line
@@ -191,6 +199,5 @@ class RaceLineFactory:
             acceleration_long_per_point=acceleration_long_per_point,
             curvature_per_point=curvature_per_point,
             heading_per_point=heading_per_point,
-            closed=closed
+            closed=closed,
         )
-

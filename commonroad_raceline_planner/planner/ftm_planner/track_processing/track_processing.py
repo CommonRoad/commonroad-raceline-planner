@@ -2,13 +2,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-from commonroad_raceline_planner.planner.ftm_planner.track_processing.width_inflation_layer import WidthInflationLayer
+from commonroad_raceline_planner.planner.ftm_planner.track_processing.width_inflation_layer import (
+    WidthInflationLayer,
+)
+
 # CommonRoad
 from commonroad_raceline_planner.planner.ftm_planner.ftm_dto import DtoFTM
-from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_splines import calc_splines
-from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.check_normals_crossing import check_normals_crossing
-from commonroad_raceline_planner.planner.ftm_planner.track_processing.lin_interpol_layer import LinearInterpolationLayer
-from commonroad_raceline_planner.planner.ftm_planner.track_processing.spline_approx_layer import SplineApproxLayer
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_splines import (
+    calc_splines,
+)
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.check_normals_crossing import (
+    check_normals_crossing,
+)
+from commonroad_raceline_planner.planner.ftm_planner.track_processing.lin_interpol_layer import (
+    LinearInterpolationLayer,
+)
+from commonroad_raceline_planner.planner.ftm_planner.track_processing.spline_approx_layer import (
+    SplineApproxLayer,
+)
 
 
 # typing
@@ -16,14 +27,14 @@ from typing import Tuple
 
 
 def preprocess_track(
-        race_track: DtoFTM,
-        k_reg: int,
-        s_reg: int,
-        stepsize_prep: float,
-        stepsize_reg: float,
-        debug: bool = True,
-        min_width: float = None,
-        normal_crossing_horizon: int = 10
+    race_track: DtoFTM,
+    k_reg: int,
+    s_reg: int,
+    stepsize_prep: float,
+    stepsize_reg: float,
+    debug: bool = True,
+    min_width: float = None,
+    normal_crossing_horizon: int = 10,
 ) -> Tuple[DtoFTM, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
 
@@ -50,10 +61,12 @@ def preprocess_track(
     race_track.close_racetrack()
 
     # liner interpolation
-    interpolated_track: DtoFTM = LinearInterpolationLayer().linear_interpolate_racetrack(
+    interpolated_track: (
+        DtoFTM
+    ) = LinearInterpolationLayer().linear_interpolate_racetrack(
         dto_racetrack=race_track,
         interpol_stepsize=stepsize_prep,
-        return_new_instance=True
+        return_new_instance=True,
     )
 
     spline_track: DtoFTM = SplineApproxLayer().spline_approximation(
@@ -62,13 +75,14 @@ def preprocess_track(
         k_reg=k_reg,
         s_reg=s_reg,
         stepsize_reg=stepsize_reg,
-        debug=debug
+        debug=debug,
     )
 
     # compute normals
-    coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp = compute_normals_and_check_crosing(
-        race_track=spline_track,
-        normal_crossing_horizon=normal_crossing_horizon
+    coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp = (
+        compute_normals_and_check_crosing(
+            race_track=spline_track, normal_crossing_horizon=normal_crossing_horizon
+        )
     )
 
     # inflate track
@@ -76,19 +90,22 @@ def preprocess_track(
         inflated_track: DtoFTM = WidthInflationLayer().inflate_width(
             dto_racetrack=spline_track,
             mininmum_track_width=min_width,
-            return_new_instance=False
+            return_new_instance=False,
         )
     else:
         inflated_track: DtoFTM = spline_track
 
-    return inflated_track, normvec_normalized_interp, a_interp, coeffs_x_interp, coeffs_y_interp
-
-
+    return (
+        inflated_track,
+        normvec_normalized_interp,
+        a_interp,
+        coeffs_x_interp,
+        coeffs_y_interp,
+    )
 
 
 def compute_normals_and_check_crosing(
-        race_track: DtoFTM,
-        normal_crossing_horizon: int = 10
+    race_track: DtoFTM, normal_crossing_horizon: int = 10
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Checks if normals crossing. Assumes a spline interpolation to be done first!
@@ -97,8 +114,8 @@ def compute_normals_and_check_crosing(
     :raise: IOError if splines are crossing
     """
     # Check if normals are crossing
-    coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp = calc_splines(
-        path=race_track.to_2d_np_array()
+    coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp = (
+        calc_splines(path=race_track.to_2d_np_array())
     )
 
     # TODO: may have to remove last point if closed?
@@ -106,18 +123,24 @@ def compute_normals_and_check_crosing(
     normals_crossing = check_normals_crossing(
         track=race_track.to_4d_np_array(),
         normvec_normalized=normvec_normalized_interp,
-        horizon=normal_crossing_horizon
+        horizon=normal_crossing_horizon,
     )
 
     if normals_crossing:
-        bound_1_tmp = (race_track.to_2d_np_array()
-                       + normvec_normalized_interp * np.expand_dims(race_track.to_2d_np_array(), axis=1))
-        bound_2_tmp = (race_track.to_2d_np_array()
-                       - normvec_normalized_interp * np.expand_dims(race_track.to_2d_np_array() , axis=1))
+        bound_1_tmp = (
+            race_track.to_2d_np_array()
+            + normvec_normalized_interp
+            * np.expand_dims(race_track.to_2d_np_array(), axis=1)
+        )
+        bound_2_tmp = (
+            race_track.to_2d_np_array()
+            - normvec_normalized_interp
+            * np.expand_dims(race_track.to_2d_np_array(), axis=1)
+        )
 
         plt.figure()
 
-        plt.plot(race_track.w_tr_right_m, race_track.w_tr_left_m, 'k-')
+        plt.plot(race_track.w_tr_right_m, race_track.w_tr_left_m, "k-")
         for i in range(bound_1_tmp.shape[0]):
             temp = np.vstack((bound_1_tmp[i], bound_2_tmp[i]))
             plt.plot(temp[:, 0], temp[:, 1], "r-", linewidth=0.7)
@@ -131,20 +154,21 @@ def compute_normals_and_check_crosing(
 
         plt.show()
 
-        raise IOError("At least two spline normals are crossed, check input or increase smoothing factor!")
-
-    else:
-        return (
-            coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp
+        raise IOError(
+            "At least two spline normals are crossed, check input or increase smoothing factor!"
         )
 
+    else:
+        return (coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp)
 
 
-def calc_min_bound_dists(trajectory: np.ndarray,
-                         bound1: np.ndarray,
-                         bound2: np.ndarray,
-                         length_veh: float,
-                         width_veh: float) -> np.ndarray:
+def calc_min_bound_dists(
+    trajectory: np.ndarray,
+    bound1: np.ndarray,
+    bound2: np.ndarray,
+    length_veh: float,
+    width_veh: float,
+) -> np.ndarray:
     """
     Created by:
     Alexander Heilmeier
@@ -193,10 +217,18 @@ def calc_min_bound_dists(trajectory: np.ndarray,
         rr_ = trajectory[i, 1:3] + np.matmul(mat_rot, rr)
 
         # get minimum distances of vehicle edges to any boundary point
-        fl__mindist = np.sqrt(np.power(bounds[:, 0] - fl_[0], 2) + np.power(bounds[:, 1] - fl_[1], 2))
-        fr__mindist = np.sqrt(np.power(bounds[:, 0] - fr_[0], 2) + np.power(bounds[:, 1] - fr_[1], 2))
-        rl__mindist = np.sqrt(np.power(bounds[:, 0] - rl_[0], 2) + np.power(bounds[:, 1] - rl_[1], 2))
-        rr__mindist = np.sqrt(np.power(bounds[:, 0] - rr_[0], 2) + np.power(bounds[:, 1] - rr_[1], 2))
+        fl__mindist = np.sqrt(
+            np.power(bounds[:, 0] - fl_[0], 2) + np.power(bounds[:, 1] - fl_[1], 2)
+        )
+        fr__mindist = np.sqrt(
+            np.power(bounds[:, 0] - fr_[0], 2) + np.power(bounds[:, 1] - fr_[1], 2)
+        )
+        rl__mindist = np.sqrt(
+            np.power(bounds[:, 0] - rl_[0], 2) + np.power(bounds[:, 1] - rl_[1], 2)
+        )
+        rr__mindist = np.sqrt(
+            np.power(bounds[:, 0] - rr_[0], 2) + np.power(bounds[:, 1] - rr_[1], 2)
+        )
 
         # save overall minimum distance of current vehicle position
         min_dists[i] = np.amin((fl__mindist, fr__mindist, rl__mindist, rr__mindist))
@@ -204,12 +236,7 @@ def calc_min_bound_dists(trajectory: np.ndarray,
     return min_dists
 
 
-
-
-
-
-def interp_track(reftrack: np.ndarray,
-                 stepsize_approx: float = 1.0) -> np.ndarray:
+def interp_track(reftrack: np.ndarray, stepsize_approx: float = 1.0) -> np.ndarray:
     """
     Created by:
     Alexander Heilmeier
@@ -232,7 +259,9 @@ def interp_track(reftrack: np.ndarray,
     reftrack_cl = np.vstack((reftrack, reftrack[0]))
 
     # calculate element lengths (euclidian distance)
-    el_lenghts = np.sqrt(np.sum(np.power(np.diff(reftrack_cl[:, :2], axis=0), 2), axis=1))
+    el_lenghts = np.sqrt(
+        np.sum(np.power(np.diff(reftrack_cl[:, :2], axis=0), 2), axis=1)
+    )
 
     # sum up total distance (from start) to every element
     dists_cum = np.cumsum(el_lenghts)

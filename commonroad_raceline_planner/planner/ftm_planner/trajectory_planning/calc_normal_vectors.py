@@ -1,5 +1,7 @@
 import numpy as np
-from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_normal_vectors_ahead import calc_normal_vectors_ahead
+from commonroad_raceline_planner.planner.ftm_planner.trajectory_planning.calc_normal_vectors_ahead import (
+    calc_normal_vectors_ahead,
+)
 import math
 
 
@@ -31,5 +33,7 @@ def calc_normal_vectors(psi: np.ndarray) -> np.ndarray:
 
 # testing --------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    psi_test = np.array([0.0, math.pi / 4, math.pi / 2, math.pi, -math.pi, -math.pi / 2])
+    psi_test = np.array(
+        [0.0, math.pi / 4, math.pi / 2, math.pi, -math.pi, -math.pi / 2]
+    )
     print("Result:\n", calc_normal_vectors(psi=psi_test))

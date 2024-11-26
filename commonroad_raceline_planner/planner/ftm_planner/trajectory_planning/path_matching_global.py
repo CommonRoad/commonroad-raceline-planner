@@ -4,11 +4,13 @@ import trajectory_planning_helpers.get_rel_path_part
 from typing import Union
 
 
-def path_matching_global(path_cl: np.ndarray,
-                         ego_position: np.ndarray,
-                         s_expected: Union[float, None] = None,
-                         s_range: float = 20.0,
-                         no_interp_values: int = 11) -> tuple:
+def path_matching_global(
+    path_cl: np.ndarray,
+    ego_position: np.ndarray,
+    s_expected: Union[float, None] = None,
+    s_range: float = 20.0,
+    no_interp_values: int = 11,
+) -> tuple:
     """
     author:
     Alexander Heilmeier
@@ -52,10 +54,9 @@ def path_matching_global(path_cl: np.ndarray,
     s_tot = path_cl[-1, 0]
 
     if s_expected is not None:
-        path_rel = trajectory_planning_helpers.get_rel_path_part.get_rel_path_part(path_cl=path_cl,
-                                                                                   s_pos=s_expected,
-                                                                                   s_dist_back=s_range,
-                                                                                   s_dist_forw=s_range)[0]
+        path_rel = trajectory_planning_helpers.get_rel_path_part.get_rel_path_part(
+            path_cl=path_cl, s_pos=s_expected, s_dist_back=s_range, s_dist_forw=s_range
+        )[0]
 
         # path must not be considered closed specifically as it is continuous and unclosed by construction
         consider_as_closed = False
@@ -72,12 +73,15 @@ def path_matching_global(path_cl: np.ndarray,
     # ------------------------------------------------------------------------------------------------------------------
 
     # get s_interp and d_displ
-    s_interp, d_displ = trajectory_planning_helpers.path_matching_local.\
-        path_matching_local(path=path_rel,
-                            ego_position=ego_position,
-                            consider_as_closed=consider_as_closed,
-                            s_tot=s_tot,
-                            no_interp_values=no_interp_values)
+    s_interp, d_displ = (
+        trajectory_planning_helpers.path_matching_local.path_matching_local(
+            path=path_rel,
+            ego_position=ego_position,
+            consider_as_closed=consider_as_closed,
+            s_tot=s_tot,
+            no_interp_values=no_interp_values,
+        )
+    )
 
     # cut length if bigger than s_tot
     if s_interp >= s_tot:

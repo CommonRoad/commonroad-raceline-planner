@@ -3,14 +3,16 @@ import math
 import trajectory_planning_helpers.normalize_psi
 
 
-def calc_head_curv_num(path: np.ndarray,
-                       el_lengths: np.ndarray,
-                       is_closed: bool,
-                       stepsize_psi_preview: float = 1.0,
-                       stepsize_psi_review: float = 1.0,
-                       stepsize_curv_preview: float = 2.0,
-                       stepsize_curv_review: float = 2.0,
-                       calc_curv: bool = True) -> tuple:
+def calc_head_curv_num(
+    path: np.ndarray,
+    el_lengths: np.ndarray,
+    is_closed: bool,
+    stepsize_psi_preview: float = 1.0,
+    stepsize_psi_review: float = 1.0,
+    stepsize_curv_preview: float = 2.0,
+    stepsize_curv_review: float = 2.0,
+    calc_curv: bool = True,
+) -> tuple:
     """
     author:
     Alexander Heilmeier
@@ -74,10 +76,16 @@ def calc_head_curv_num(path: np.ndarray,
         # --------------------------------------------------------------------------------------------------------------
 
         # calculate how many points we look to the front and rear of the current position for the head/curv calculations
-        ind_step_preview_psi = round(stepsize_psi_preview / float(np.average(el_lengths)))
+        ind_step_preview_psi = round(
+            stepsize_psi_preview / float(np.average(el_lengths))
+        )
         ind_step_review_psi = round(stepsize_psi_review / float(np.average(el_lengths)))
-        ind_step_preview_curv = round(stepsize_curv_preview / float(np.average(el_lengths)))
-        ind_step_review_curv = round(stepsize_curv_review / float(np.average(el_lengths)))
+        ind_step_preview_curv = round(
+            stepsize_curv_preview / float(np.average(el_lengths))
+        )
+        ind_step_review_curv = round(
+            stepsize_curv_review / float(np.average(el_lengths))
+        )
 
         ind_step_preview_psi = max(ind_step_preview_psi, 1)
         ind_step_review_psi = max(ind_step_review_psi, 1)
@@ -92,9 +100,16 @@ def calc_head_curv_num(path: np.ndarray,
         # --------------------------------------------------------------------------------------------------------------
 
         # calculate tangent vectors for every point
-        path_temp = np.vstack((path[-ind_step_review_psi:], path, path[:ind_step_preview_psi]))
-        tangvecs = np.stack((path_temp[steps_tot_psi:, 0] - path_temp[:-steps_tot_psi, 0],
-                             path_temp[steps_tot_psi:, 1] - path_temp[:-steps_tot_psi, 1]), axis=1)
+        path_temp = np.vstack(
+            (path[-ind_step_review_psi:], path, path[:ind_step_preview_psi])
+        )
+        tangvecs = np.stack(
+            (
+                path_temp[steps_tot_psi:, 0] - path_temp[:-steps_tot_psi, 0],
+                path_temp[steps_tot_psi:, 1] - path_temp[:-steps_tot_psi, 1],
+            ),
+            axis=1,
+        )
 
         # calculate psi of tangent vectors (pi/2 must be substracted due to our convention that psi = 0 is north)
         psi = np.arctan2(tangvecs[:, 1], tangvecs[:, 0]) - math.pi / 2
@@ -112,19 +127,28 @@ def calc_head_curv_num(path: np.ndarray,
             delta_psi = np.zeros(no_points)
 
             for i in range(no_points):
-                delta_psi[i] = trajectory_planning_helpers.normalize_psi.\
-                    normalize_psi(psi_temp[i + steps_tot_curv] - psi_temp[i])
+                delta_psi[i] = trajectory_planning_helpers.normalize_psi.normalize_psi(
+                    psi_temp[i + steps_tot_curv] - psi_temp[i]
+                )
 
             # calculate kappa
             s_points_cl = np.cumsum(el_lengths)
             s_points_cl = np.insert(s_points_cl, 0, 0.0)
             s_points = s_points_cl[:-1]
-            s_points_cl_reverse = np.flipud(-np.cumsum(np.flipud(el_lengths)))  # should not include 0.0 as last value
+            s_points_cl_reverse = np.flipud(
+                -np.cumsum(np.flipud(el_lengths))
+            )  # should not include 0.0 as last value
 
-            s_points_temp = np.insert(s_points, 0, s_points_cl_reverse[-ind_step_review_curv:])
-            s_points_temp = np.append(s_points_temp, s_points_cl[-1] + s_points[:ind_step_preview_curv])
+            s_points_temp = np.insert(
+                s_points, 0, s_points_cl_reverse[-ind_step_review_curv:]
+            )
+            s_points_temp = np.append(
+                s_points_temp, s_points_cl[-1] + s_points[:ind_step_preview_curv]
+            )
 
-            kappa = delta_psi / (s_points_temp[steps_tot_curv:] - s_points_temp[:-steps_tot_curv])
+            kappa = delta_psi / (
+                s_points_temp[steps_tot_curv:] - s_points_temp[:-steps_tot_curv]
+            )
 
         else:
             kappa = 0.0
@@ -168,13 +192,17 @@ def calc_head_curv_num(path: np.ndarray,
             delta_psi[-1] = psi[-1] - psi[-2]  # i == -1
 
             # normalize delta_psi
-            delta_psi = trajectory_planning_helpers.normalize_psi.normalize_psi(delta_psi)
+            delta_psi = trajectory_planning_helpers.normalize_psi.normalize_psi(
+                delta_psi
+            )
 
             # calculate kappa
             kappa = np.zeros(no_points)
 
             kappa[0] = delta_psi[0] / el_lengths[0]  # i == 0
-            kappa[1:-1] = delta_psi[1:-1] / (el_lengths[1:] + el_lengths[:-1])  # 0 < i < no_points - 1
+            kappa[1:-1] = delta_psi[1:-1] / (
+                el_lengths[1:] + el_lengths[:-1]
+            )  # 0 < i < no_points - 1
             kappa[-1] = delta_psi[-1] / el_lengths[-1]  # i == -1
 
         else:

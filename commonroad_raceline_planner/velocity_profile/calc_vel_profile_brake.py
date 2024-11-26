@@ -3,16 +3,18 @@ import math
 import trajectory_planning_helpers.calc_vel_profile
 
 
-def calc_vel_profile_brake(kappa: np.ndarray,
-                           el_lengths: np.ndarray,
-                           v_start: float,
-                           drag_coeff: float,
-                           m_veh: float,
-                           ggv: np.ndarray = None,
-                           loc_gg: np.ndarray = None,
-                           dyn_model_exp: float = 1.0,
-                           mu: np.ndarray = None,
-                           decel_max: float = None) -> np.ndarray:
+def calc_vel_profile_brake(
+    kappa: np.ndarray,
+    el_lengths: np.ndarray,
+    v_start: float,
+    drag_coeff: float,
+    m_veh: float,
+    ggv: np.ndarray = None,
+    loc_gg: np.ndarray = None,
+    dyn_model_exp: float = 1.0,
+    mu: np.ndarray = None,
+    decel_max: float = None,
+) -> np.ndarray:
     """
     author:
     Alexander Heilmeier
@@ -66,7 +68,9 @@ def calc_vel_profile_brake(kappa: np.ndarray,
 
     # check if either ggv (and optionally mu) or loc_gg are handed in
     if (ggv is not None or mu is not None) and loc_gg is not None:
-        raise RuntimeError("Either ggv and optionally mu OR loc_gg must be supplied, not both (or all) of them!")
+        raise RuntimeError(
+            "Either ggv and optionally mu OR loc_gg must be supplied, not both (or all) of them!"
+        )
 
     if ggv is None and loc_gg is None:
         raise RuntimeError("Either ggv or loc_gg must be supplied!")
@@ -84,7 +88,9 @@ def calc_vel_profile_brake(kappa: np.ndarray,
 
     # check shape of ggv
     if ggv is not None and ggv.shape[1] != 3:
-        raise RuntimeError("ggv diagram must consist of the three columns [vx, ax_max, ay_max]!")
+        raise RuntimeError(
+            "ggv diagram must consist of the three columns [vx, ax_max, ay_max]!"
+        )
 
     # check size of mu
     if mu is not None and kappa.size != mu.size:
@@ -97,15 +103,19 @@ def calc_vel_profile_brake(kappa: np.ndarray,
     # check start and end velocities
     if v_start < 0.0:
         v_start = 0.0
-        print('WARNING: Input v_start was < 0.0. Using v_start = 0.0 instead!')
+        print("WARNING: Input v_start was < 0.0. Using v_start = 0.0 instead!")
 
     # check dyn_model_exp
     if not 1.0 <= dyn_model_exp <= 2.0:
-        print('WARNING: Exponent for the vehicle dynamics model should be in the range [1.0, 2.0]!')
+        print(
+            "WARNING: Exponent for the vehicle dynamics model should be in the range [1.0, 2.0]!"
+        )
 
     # check if ggv covers velocity until v_start
     if ggv is not None and ggv[-1, 0] < v_start:
-        raise RuntimeError("ggv has to cover the entire velocity range of the car (i.e. >= v_start)!")
+        raise RuntimeError(
+            "ggv has to cover the entire velocity range of the car (i.e. >= v_start)!"
+        )
 
     # ------------------------------------------------------------------------------------------------------------------
     # BRINGING GGV OR LOC_GG INTO SHAPE FOR EQUAL HANDLING AFTERWARDS --------------------------------------------------
@@ -122,7 +132,9 @@ def calc_vel_profile_brake(kappa: np.ndarray,
 
     # CASE 2: local gg diagram supplied -> add velocity dimension (artificial velocity of 10.0 m/s)
     else:
-        p_ggv = np.expand_dims(np.column_stack((np.ones(loc_gg.shape[0]) * 10.0, loc_gg)), axis=1)
+        p_ggv = np.expand_dims(
+            np.column_stack((np.ones(loc_gg.shape[0]) * 10.0, loc_gg)), axis=1
+        )
 
     # ------------------------------------------------------------------------------------------------------------------
     # PREPARATIONS -----------------------------------------------------------------------------------------------------
@@ -135,7 +147,9 @@ def calc_vel_profile_brake(kappa: np.ndarray,
     vx_profile[0] = v_start
 
     # transform curvature kappa into corresponding radii (abs because curvature has a sign in our convention)
-    radii = np.abs(np.divide(1, kappa, out=np.full(kappa.size, np.inf), where=kappa != 0))
+    radii = np.abs(
+        np.divide(1, kappa, out=np.full(kappa.size, np.inf), where=kappa != 0)
+    )
 
     # set mu if it is None
     if mu is None:
@@ -148,16 +162,20 @@ def calc_vel_profile_brake(kappa: np.ndarray,
     for i in range(no_points - 1):
         # calculate longitudinal acceleration
         ggv_mod = np.copy(p_ggv[i])
-        ggv_mod[:, 1] *= -1.0  # use negative acceleration in x axis for forward deceleration
-        ax_final = trajectory_planning_helpers.calc_vel_profile.calc_ax_poss(vx_start=vx_profile[i],
-                                                                             radius=radii[i],
-                                                                             ggv=ggv_mod,
-                                                                             ax_max_machines=None,
-                                                                             mu=mu[i],
-                                                                             mode='decel_forw',
-                                                                             dyn_model_exp=dyn_model_exp,
-                                                                             drag_coeff=drag_coeff,
-                                                                             m_veh=m_veh)
+        ggv_mod[
+            :, 1
+        ] *= -1.0  # use negative acceleration in x axis for forward deceleration
+        ax_final = trajectory_planning_helpers.calc_vel_profile.calc_ax_poss(
+            vx_start=vx_profile[i],
+            radius=radii[i],
+            ggv=ggv_mod,
+            ax_max_machines=None,
+            mu=mu[i],
+            mode="decel_forw",
+            dyn_model_exp=dyn_model_exp,
+            drag_coeff=drag_coeff,
+            m_veh=m_veh,
+        )
 
         # --------------------------------------------------------------------------------------------------------------
         # CONSIDER DESIRED MAXIMUM DECELERATION ------------------------------------------------------------------------
