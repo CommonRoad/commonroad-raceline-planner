@@ -1,0 +1,146 @@
+image: python:3.10
+
+cache:
+  paths:
+    - .venv
+
+stages:
+  - style
+  - testinstall
+  - test
+  - deploy
+
+before_script:
+  - pip install poetry
+  - poetry config virtualenvs.in-project true
+  - poetry install --with test,docs
+  - poetry update
+  - source .venv/bin/activate
+
+
+
+###### Test #########
+unittest:
+  stage: test
+  except:
+    - public
+    - feature/release_check
+  script:
+    - coverage run --source=./commonroad_raceline_planner -m unittest discover test
+    - coverage report -m || true
+    - coverage xml
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+test_build_pages:
+  stage: test
+  allow_failure: true
+  script:
+    - mkdocs build
+  artifacts:
+    paths:
+      - site
+  needs: [ ]
+
+
+test_no_scenario_files:
+  stage: test
+  only:
+    - public
+    - feature/release_check
+  script:
+    - if [ -d scenarios/ ]; then exit 1; fi
+
+
+
+####### Style ##########
+flake8:
+  stage: style
+  needs: []
+  image: python:3.10
+  before_script: []
+  cache: []
+  only:
+    - develop
+    - master
+    - release
+  script:
+    - pip install flake8
+    - flake8 commonroad_raceline_planner/ --extend-ignore=E501,E203 --max-line-length=120
+
+black:
+  stage: style
+  needs: []
+  image: pyfound/black:24.2.0
+  before_script: []
+  cache: []
+  only:
+    - develop
+    - master
+    - release
+  script:
+    - black --check --verbose --diff --color commonroad_raceline_planner/
+
+
+
+
+
+
+################# Deploy ##########
+# Deploy the package to the internal package registry
+deploy_master:
+  stage: deploy
+  when: manual
+  script:
+    - poetry config repositories.gitlab ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi
+    - poetry build
+    - poetry publish --repository gitlab -u gitlab-ci-token -p ${CI_JOB_TOKEN}
+  only:
+    - master
+  except:
+    - tags
+
+# Deploy to gitlab pages
+pages:
+  stage: deploy
+  when: manual
+  publish: site
+  only:
+    - master
+  script:
+    - mkdocs build
+  artifacts:
+    paths:
+      - site
+  environment:
+    name: Gitlab Pages
+    url: https://cps.pages.gitlab.lrz.de/commonroad/commonroad-racline-planner/
+
+# deploy to external pypy-test from master
+push_to_external_pipy_test_registry:
+  stage: deploy
+  when: manual
+  only:
+    - master
+  script:
+    - poetry config repositories.test https://test.pypi.org/legacy/
+    - poetry build
+    - poetry publish --repository test -u __token__ -p ${CR_PYPI_TEST_API_TOKEN}
+
+
+# Deploy to PiPy from release
+publish_pypi:
+  stage: deploy
+  when: manual
+  only:
+    - release
+  script:
+    - poetry build
+    - poetry publish -u __token__ -p ${CR_PYPI_RELEASE_API_TOKEN}
+  environment:
+    name: production
+    url: https://pypi.org/project/commonroad-racline-planner
