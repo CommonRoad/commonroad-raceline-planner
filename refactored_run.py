@@ -12,6 +12,7 @@ from commonroad_raceline_planner.ractetrack import  RaceTrackFactory
 from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import MinimumCurvaturePlanner
 from commonroad_raceline_planner.planner.ftm_planner.ftm_sp_planner import ShortestPathPlanner
 from commonroad_raceline_planner.raceline import RaceLine
+from commonroad_raceline_planner.util.io import export_traj_race
 from commonroad_raceline_planner.util.visualization.visualize_on_racetrack import plot_trajectory_with_all_quantities
 from commonroad_raceline_planner.util.visualization.visualize_over_arclength import plot_trajectory_over_arclength
 
@@ -21,8 +22,8 @@ def main(
         ini_path: Union[str, Path],
         ggv_file: Union[str, Path],
         ax_max_machines_file: Union[str, Path],
-        traj_race_export: Union[str, Path],
-        velocity_profile_export: Union[str, Path],
+        traj_race_export: Optional[Union[str, Path]] = None,
+        velocity_profile_export: Optional[Union[str, Path]] = None,
         opt_type: OptimizationType = OptimizationType.SHORTEST_PATH,
         min_track_width: Optional[float] = None
 ) -> None:
@@ -62,10 +63,11 @@ def main(
         raise NotImplementedError(f'Planner {opt_type} not implemented')
 
     # export data
-    raceline.export_trajectory_to_csv_file(
-        export_path=traj_race_export,
-        ggv_file_path=velocity_profile_export
-    )
+    if traj_race_export is not None and ggv_file is not None:
+        raceline.export_trajectory_to_csv_file(
+            export_path=traj_race_export,
+            ggv_file_path=velocity_profile_export
+        )
 
     plot_trajectory_with_all_quantities(
         race_line=raceline,
@@ -79,7 +81,7 @@ def main(
 
 
 if __name__ == "__main__":
-    cr_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/tracks/XML_maps/ZAM_realrounded-1_1_T-1.xml"
+    cr_path = "/scenarios/tracks/XML_maps/tests/ZAM_realrounded-1_1_T-1.xml"
     ini_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/params/racecar.ini"
     ggv_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/veh_dyn_info/ggv.csv"
     ax_max_machines_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/veh_dyn_info/ax_max_machines.csv"

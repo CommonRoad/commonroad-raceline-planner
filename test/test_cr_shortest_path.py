@@ -1,0 +1,38 @@
+import unittest
+from pathlib import Path
+import os
+
+from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
+from refactored_run import main
+
+
+class TestCRShortestPath(unittest.TestCase):
+    """
+    Test Shorstest Path on CommonRoad
+    """
+
+    def test_cr_sp(self):
+        path_scenarios = Path(__file__).parents[1] / "scenarios"
+
+        cr_paths = path_scenarios / "tracks/XML_maps/tests"
+        cr_files = os.listdir(cr_paths)
+
+        ini_path = path_scenarios / "params/racecar.ini"
+        ggv_file = path_scenarios / "veh_dyn_info/ggv.csv"
+        ax_max_machines_file = path_scenarios / "veh_dyn_info/ax_max_machines.csv"
+        opt_type: OptimizationType = OptimizationType.SHORTEST_PATH
+
+
+        for filename in cr_files:
+            with self.subTest(msg=f"Testing scenario: {filename} shortest path", filename=filename):
+                main(
+                    cr_path=cr_paths / filename,
+                    ini_path=ini_path,
+                    ggv_file=ggv_file,
+                    ax_max_machines_file=ax_max_machines_file,
+                    opt_type=opt_type
+                )
+
+
+
+
