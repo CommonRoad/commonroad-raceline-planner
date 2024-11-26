@@ -1,8 +1,10 @@
+![Hockenheim Ring Minimum Curvature Algorithm](assets/combined_av_chairs.svg)
 # CommonRoad Raceline Planner
 The CommonRoad Raceline Planner combines several algorithms for raceline global trajectory planning for 
 autonomous racing.
 Our work is based on code of the Indy Racing Team at TU Munich [1,2], namely the groups from Prof. Betz (AVS) and Prof. Lienkamp (FTM)
-and the following papers [3-6] and a collaboration between TUM CPS, AVS and FTM.
+and the following papers [3-6]. This toolbox is a collaboration between TUM CPS, AVS and FTM.
+
 
 ## Featured Planners
 Currently, the toolbox features the following planners: 
