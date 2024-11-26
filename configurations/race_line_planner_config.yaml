@@ -48,11 +48,6 @@ file_paths:
   velocity_profile_export: "outputs/velocity_profile.json"
 
 
-#  # Additional Mintime map configuration variables:
-#  mintime_export: "outputs/mintime"
-#  # Friction map files
-#  tpamap: "inputs/frictionmaps/rounded_rectangle_tpamap.csv"
-#  tpadata: "inputs/frictionmaps/rounded_rectangle_tpadata.json"
 
 #opt_type: "mincurv"
 opt_type: "shortest_path"
