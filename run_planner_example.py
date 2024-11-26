@@ -81,7 +81,7 @@ def main(
 
 
 if __name__ == "__main__":
-    cr_path = "/scenarios/tracks/XML_maps/tests/ZAM_realrounded-1_1_T-1.xml"
+    cr_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/tracks/XML_maps/DEU_Hhr-1_1.xml"
     ini_path = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/params/racecar.ini"
     ggv_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/veh_dyn_info/ggv.csv"
     ax_max_machines_file = "/home/tmasc/projects/cr-raceline/commonroad-raceline-planner/scenarios/veh_dyn_info/ax_max_machines.csv"
