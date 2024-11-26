@@ -21,18 +21,13 @@ nav:
 
   - Example Usage:
       - "Fast API": fast_api.md
-      - "Minimal Example": minimal_example.md
       - "Long Example": long_example.md
-      - "Different Planners": planner_switch_example.md
-      - "Configurations": config_example.md
-      - "Reactive Planner Integration": reactive_planner_integration.md
 
   - Core API:
-      - "Velocity Planner Interface": vpi.md
-      - "Velocity Planning Problem": vpp.md
-      - "Global Trajectory": global_trajectory.md
-      - "Configuration": _execution_config.md
+      - "Race Track": racetrack.md
+      - "Race Line": raceline.md
+      - "Shortest Path Planner": spp.md
+      - "Minimum Curvature Planner": mcp.md
       - "Visualization": visualization.md
-      - "Spline Profile": spline_profile.md
 
 
