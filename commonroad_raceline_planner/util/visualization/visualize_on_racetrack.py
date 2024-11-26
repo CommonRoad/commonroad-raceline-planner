@@ -68,6 +68,10 @@ def plot_param(
     # draw scenario and renderer
     renderer.render()
 
+    # plot legent before divider so they appear nice
+    plt.xlabel("East [m]")
+    plt.ylabel("North [m]")
+
     # colorbar work-around
     divider = make_axes_locatable(plt.gca())
     cax = divider.append_axes("right", size="5%", pad=0.05)
@@ -76,7 +80,6 @@ def plot_param(
     sm.set_array([])
     plt.colorbar(sm, cax=cax, cmap="plasma", orientation="vertical")
     plt.title(title)
-
     plt.show()
 
 
@@ -139,7 +142,7 @@ def plot_trajectory_with_velocity(
         race_line=race_line,
         param=race_line.velocity_long_per_point,
         size_x=size_x,
-        title="Velocity",
+        title="Velocity [m/s]",
     )
 
 
@@ -162,7 +165,7 @@ def plot_trajectory_with_curvature(
         race_line=race_line,
         param=race_line.curvature_per_point,
         size_x=size_x,
-        title="Curvature",
+        title="Curvature [1/m]",
     )
 
 
@@ -185,7 +188,7 @@ def plot_trajectory_with_acceleration(
         race_line=race_line,
         param=race_line.acceleration_long_per_point,
         size_x=size_x,
-        title="Acceleration",
+        title="Acceleration [m/s^2]",
     )
 
 
@@ -208,7 +211,7 @@ def plot_trajectory_with_heading(
         race_line=race_line,
         param=race_line.heading_per_point,
         size_x=size_x,
-        title="Heading",
+        title="Heading [rad]",
     )
 
 
