@@ -3,6 +3,7 @@ import numpy as np
 import warnings
 
 # commonroad
+from commonroad.planning.planning_problem import PlanningProblem
 from commonroad.scenario.lanelet import LaneletNetwork, Lanelet
 
 # own code base
@@ -167,13 +168,15 @@ class RaceTrackFactory:
     @staticmethod
     def generate_racetrack_from_cr_scenario(
             lanelet_network: LaneletNetwork,
+            planning_problem: PlanningProblem,
             vehicle_width: float,
             num_laps: int = 1,
             flip_track: bool = False,
             set_new_start: bool = False,
             new_start: Optional[np.ndarray] = None,
             removing_distance: float = 0.5,
-            vehicle_safe_margin_m: float = 0.5
+            vehicle_safe_margin_m: float = 0.5,
+            lanelet_generation_loop_breack: int = 1000,
     ) -> RaceTrack:
         """
             Load racetrack from cr scenario
@@ -182,23 +185,50 @@ class RaceTrackFactory:
             as well as the distances from each center point to the nearest point in the left and right lines of the lanelet.
             (width_track_left and width_track_right)
             """
+        # construct racetrack from lanelet network
+        lanelets_ids_track: List[int] = []
+        lanelet_id: int = lanelet_network.find_lanelet_by_position([planning_problem.initial_state.position])[0][0]
+        lanelets_ids_track.append(lanelet_id)
+        lanelet: Lanelet = lanelet_network.find_lanelet_by_id(lanelet_id)
+        cnt: int = 0
+        while len(lanelet.successor) > 0:
+            if(len(lanelet.successor) > 1):
+                raise ValueError(
+                    f"Lanelet {lanelet.lanelet_id} has {len(lanelet.successor)} successors, must only have one"
+                )
+
+            # break if closed loop encountered
+            if(lanelet.successor[0] == lanelets_ids_track[0]):
+                break
+            else:
+                lanelets_ids_track.append(lanelet.successor[0])
+                lanelet: Lanelet = lanelet_network.find_lanelet_by_id(lanelet.successor[0])
+
+            cnt += 1
+            if cnt > lanelet_generation_loop_breack:
+                raise ValueError(f"Stuck in lanelet generation loop for {lanelet_generation_loop_breack} iterations")
+
+
         # Open the XML file and read the scenario
         points = []
-        lanelets = RaceTrackFactory.sort_lanelets_by_id(lanelet_network)
+        lanelets: List[Lanelet] = [lanelet_network.find_lanelet_by_id(lanelet_id) for lanelet_id in lanelets_ids_track]
 
         for lanelet in lanelets:
             for center_point in lanelet.center_vertices:
+                # for each point find closest left and right point
                 left_distances = [np.linalg.norm(center_point - left_point) for left_point in lanelet.left_vertices]
                 min_left_distance = min(left_distances)
 
                 right_distances = [np.linalg.norm(center_point - right_point) for right_point in lanelet.right_vertices]
                 min_right_distance = min(right_distances)
-                points.append({
-                    'x_m': center_point[0],
-                    'y_m': center_point[1],
-                    'w_tr_right_m': min_right_distance,
-                    'w_tr_left_m': min_left_distance
-                })
+                points.append(
+                    {
+                        'x_m': center_point[0],
+                        'y_m': center_point[1],
+                        'w_tr_right_m': min_right_distance,
+                        'w_tr_left_m': min_left_distance
+                    }
+                )
 
         # Remove colliding points
         filtered_points = []
@@ -223,10 +253,16 @@ class RaceTrackFactory:
             npoints = np.vstack((npoints, new_p))
 
 
-        # check if imported centerline should be flipped, i.e. reverse direction
-        if flip_track:
+        # Flip detection -> the algorithms assume that one drives with the clock, i.e. the right normals pointing inwards
+        # if that is not true, flip the points
+        if not RaceTrackFactory.check_clockwise(npoints[:, 0:2]):
             npoints = np.flipud(npoints)
 
+        # manually flipped -> TODO: remove
+        #if flip_track:
+            #npoints = np.flipud(npoints)
+
+        # TODO: Add planning problem
         # check if imported centerline should be reordered for a new starting point
         if set_new_start:
             ind_start = np.argmin(np.power(npoints[:, 0] - new_start[0], 2)
@@ -256,3 +292,25 @@ class RaceTrackFactory:
         lanelets = lanelet_network.lanelets
         lanelets.sort(key=lambda l: int(l.lanelet_id))
         return lanelets
+
+
+    @staticmethod
+    def check_clockwise(
+            points: np.ndarray
+    ) -> bool:
+        """
+        Checks if points are ordered clockwise.
+        Resource:
+        https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
+        :param points: (n,2) point array
+        :return: True, if clockwise
+        """
+        edge_sum: float = 0
+        for idx in range(points.shape[0] - 1):
+            # (x2 - x1) * (y2 + y1)
+            edge_sum += (points[idx + 1][0] - points[idx][0]) * ((points[idx + 1][1] + points[idx][1]))
+
+        return True if edge_sum > 0 else False
+
+
+

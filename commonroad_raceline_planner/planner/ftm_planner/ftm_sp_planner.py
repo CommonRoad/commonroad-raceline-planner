@@ -1,3 +1,8 @@
+import logging
+
+# own code base
+from commonroad_raceline_planner.ractetrack import RaceTrack
+from commonroad_raceline_planner.configuration.ftm_config.ftm_config import FTMConfig
 from commonroad_raceline_planner.planner.ftm_planner.optimization.opt_shortest_path import opt_shortest_path
 from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import MinimumCurvaturePlanner
 
@@ -9,6 +14,20 @@ class ShortestPathPlanner(MinimumCurvaturePlanner):
     FTM shortest path planner from Heilmeier et al.
     """
 
+    def __init__(
+            self,
+            race_track: RaceTrack,
+            config: FTMConfig,
+            logger_level: int = logging.INFO
+    ) -> None:
+        super().__init__(
+            race_track=race_track,
+            config=config,
+            logger_level=logger_level
+        )
+        # overwrite logger
+        self._logger = logging.getLogger("FTMPlanner.SP")
+        self._logger.setLevel(logger_level)
 
     def _optimize(self) -> None:
         """

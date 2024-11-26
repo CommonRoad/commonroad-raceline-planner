@@ -106,10 +106,6 @@ class SplineApproxLayer(BaseRacetrackLayer):
                 + math.pow(closest_point_cl[i, 1] - original_track.y_m[i], 2)
             )
 
-        if debug:
-            print("Spline approximation: mean deviation %.2fm, maximum deviation %.2fm"
-                  % (float(np.mean(dists_cl)), float(np.amax(np.abs(dists_cl)))))
-
         # get side of smoothed track compared to the inserted track
         sides = np.zeros(original_track.num_points - 1)
 

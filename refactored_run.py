@@ -3,6 +3,7 @@ from pathlib import Path
 
 # commonroad
 from commonroad.common.file_reader import CommonRoadFileReader
+from commonroad.planning.planning_problem import PlanningProblem
 
 # own package
 from commonroad_raceline_planner.configuration.ftm_config.ftm_config import FTMConfig, FTMConfigFactory
@@ -22,7 +23,7 @@ def main(
 ) -> None:
     # Commonroad imports
     scenario, planning_problem_set = CommonRoadFileReader(cr_path).open()
-    planning_problem = list(planning_problem_set.planning_problem_dict.values())[0]
+    planning_problem: PlanningProblem = list(planning_problem_set.planning_problem_dict.values())[0]
 
     # generate configs
     ftm_config: FTMConfig = FTMConfigFactory().generate_from_ini_and_config_file(
@@ -34,6 +35,7 @@ def main(
     # import race track
     race_track = RaceTrackFactory().generate_racetrack_from_cr_scenario(
         lanelet_network=scenario.lanelet_network,
+        planning_problem=planning_problem,
         vehicle_width=ftm_config.computation_config.general_config.vehicle_config.width
     )
 
