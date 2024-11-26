@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 
 from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
-from refactored_run import main
+from run_planner_example import main
 
 
 class TestCRMincurv(unittest.TestCase):

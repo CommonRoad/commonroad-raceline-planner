@@ -87,7 +87,7 @@ class RaceTrackFactory:
     """
 
     @staticmethod
-    def generate_racetrack_from_csv(
+    def _generate_racetrack_from_csv(
         file_path: str,
         vehicle_width: float,
         num_laps: int = 1,
@@ -96,6 +96,7 @@ class RaceTrackFactory:
         vehicle_safe_margin_m: float = 0.5
     ) -> RaceTrack:
         """
+        FOR NEXT RELEASE: CURRENTLY NOT WORKING
         Import racetrack from csv
 
         Inputs:
@@ -106,6 +107,8 @@ class RaceTrackFactory:
         Outputs:
         race_track:   imported track [x_m, y_m, w_tr_right_m, w_tr_left_m]
         """
+
+        raise NotImplementedError(f"currently not implemented since no direct conversionto commonroad in cr designer")
 
         # load data from csv file
         csv_data_temp = np.loadtxt(file_path, comments='#', delimiter=',')
@@ -172,8 +175,6 @@ class RaceTrackFactory:
             lanelet_network: LaneletNetwork,
             planning_problem: PlanningProblem,
             vehicle_width: float,
-            set_new_start: bool = False,
-            new_start: Optional[np.ndarray] = None,
             removing_distance: float = 0.5,
             vehicle_safe_margin_m: float = 0.5,
             lanelet_generation_loop_breack: int = 1000,

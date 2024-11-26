@@ -37,7 +37,7 @@ def generate_ftm_raceline_from_cr_scenario(
     :return: cr raceline
     """
     # generate configs
-    ftm_config: FTMConfig = FTMConfigFactory().generate_from_ini(
+    ftm_config: FTMConfig = FTMConfigFactory().generate_from_files(
         path_to_ini=ini_path,
         path_to_config_yml=config_yml_path,
         optimization_type=OptimizationType.MINIMUM_CURVATURE
@@ -88,7 +88,7 @@ def generate_ftm_raceline_from_cvs_scenario(
         show_plot: bool = False
 ) -> RaceLine:
     # generate configs
-    ftm_config: FTMConfig = FTMConfigFactory().generate_from_ini(
+    ftm_config: FTMConfig = FTMConfigFactory().generate_from_files(
         path_to_ini=ini_path,
         path_to_config_yml=config_yml_path,
         optimization_type=OptimizationType.MINIMUM_CURVATURE

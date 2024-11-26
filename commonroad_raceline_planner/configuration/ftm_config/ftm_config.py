@@ -1,17 +1,22 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+# own code base
 from commonroad_raceline_planner.configuration.base_config import BaseConfigFactory
-from commonroad_raceline_planner.configuration.ftm_config.computation_config import ComputationConfig, \
+from commonroad_raceline_planner.configuration.ftm_config.computation_config import (
+    ComputationConfig,
     ComputationConfigFactory
-from commonroad_raceline_planner.configuration.ftm_config.execution_config import ExecutionConfig, \
+)
+from commonroad_raceline_planner.configuration.ftm_config.execution_config import (
+    ExecutionConfig,
     ExecutionConfigFactory
+)
+from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType
 
 # typing
 from typing import Union, Optional
 
-from commonroad_raceline_planner.configuration.ftm_config.optimization_config import OptimizationType, \
-    OptimizationConfigFactory
+
 
 
 @dataclass
@@ -30,7 +35,7 @@ class FTMConfigFactory(BaseConfigFactory):
     Factory for FTM Config
     """
     @staticmethod
-    def generate_from_ini(
+    def generate_from_files(
         path_to_ini: Union[str, Path],
         ax_max_machines_file: Union[Path, str],
         ggv_file: Union[Path, str],

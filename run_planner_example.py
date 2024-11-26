@@ -12,7 +12,6 @@ from commonroad_raceline_planner.ractetrack import  RaceTrackFactory
 from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import MinimumCurvaturePlanner
 from commonroad_raceline_planner.planner.ftm_planner.ftm_sp_planner import ShortestPathPlanner
 from commonroad_raceline_planner.raceline import RaceLine
-from commonroad_raceline_planner.util.io import export_traj_race
 from commonroad_raceline_planner.util.visualization.visualize_on_racetrack import plot_trajectory_with_all_quantities
 from commonroad_raceline_planner.util.visualization.visualize_over_arclength import plot_trajectory_over_arclength
 
@@ -32,7 +31,7 @@ def main(
     planning_problem: PlanningProblem = list(planning_problem_set.planning_problem_dict.values())[0]
 
     # generate configs
-    ftm_config: FTMConfig = FTMConfigFactory().generate_from_ini(
+    ftm_config: FTMConfig = FTMConfigFactory().generate_from_files(
         path_to_ini=ini_path,
         ggv_file=ggv_file,
         ax_max_machines_file=ax_max_machines_file,
@@ -46,6 +45,7 @@ def main(
         planning_problem=planning_problem,
         vehicle_width=ftm_config.computation_config.general_config.vehicle_config.width
     )
+
 
     # plan
     if opt_type == OptimizationType.MINIMUM_CURVATURE:
