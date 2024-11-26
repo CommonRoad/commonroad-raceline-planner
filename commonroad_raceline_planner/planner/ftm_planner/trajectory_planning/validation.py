@@ -1,6 +1,5 @@
 from typing import Tuple
 import logging
-from venv import logger
 
 import numpy as np
 
@@ -102,8 +101,7 @@ def check_traj(
     # check maximum (absolute) curvature
     if np.amax(np.abs(trajectory[:, 4])) > curvlim:
         logger.warning(
-            "Curvature limit is exceeded: %.3frad/m"
-            % np.amax(np.abs(trajectory[:, 4]))
+            "Curvature limit is exceeded: %.3frad/m" % np.amax(np.abs(trajectory[:, 4]))
         )
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -151,8 +149,7 @@ def check_traj(
 
         if np.any(a_tot > np.amax(ggv[:, 1:]) + 0.1):
             logger.warning(
-                "Total ggv acceleration limit is exceeded: %.2fm/s2"
-                % np.amax(a_tot)
+                "Total ggv acceleration limit is exceeded: %.2fm/s2" % np.amax(a_tot)
             )
 
     else:

@@ -118,7 +118,7 @@ pages:
       - site
   environment:
     name: Gitlab Pages
-    url: https://cps.pages.gitlab.lrz.de/commonroad/commonroad_racline_planner/
+    url: https://cps.pages.gitlab.lrz.de/commonroad/commonroad-racline-planner/
 
 # deploy to external pypy-test from master
 push_to_external_pipy_test_registry:
@@ -143,4 +143,4 @@ publish_pypi:
     - poetry publish -u __token__ -p ${CR_PYPI_RELEASE_API_TOKEN}
   environment:
     name: production
-    url: https://pypi.org/project/commonroad_racline_planner
+    url: https://pypi.org/project/commonroad-racline-planner
