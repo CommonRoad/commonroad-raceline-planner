@@ -60,7 +60,13 @@ class MinimumCurvaturePlanner(BaseRacelinePlanner):
         self, race_track: RaceTrack, config: FTMConfig, logger_level: int = logging.INFO
     ) -> None:
         """
-        Minimum curvature planner from Heilmeier et al
+        Minimum curvature planner. It uses convex optimization (QP) to minimize the (convex approximation of the) curvature.
+
+        Paper: Heilmeier, A., Wischnewski, A., Hermansdorfer, L., Betz, J., Lienkamp, M., & Lohmann, B. (2020). Minimum curvature trajectory planning and control for an autonomous race car. Vehicle System Dynamics.
+
+        Based on: AVS and FTM (2024): TUMFTM/global_racetrajectory_optimization. Available online at: https://github.com/TUMFTM/global_racetrajectory_optimization,
+        AVS and FTM (2024): TUMFTM/trajectory_planning_helpers. Available online at: https://github.com/TUMFTM/trajectory_planning_helpers
+
         :param race_track: cr racetrack
         :param config: ftm_config
         :param logger_level: logger level, default info

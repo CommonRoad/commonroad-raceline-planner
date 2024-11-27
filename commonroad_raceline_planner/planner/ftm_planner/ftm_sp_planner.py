@@ -15,7 +15,12 @@ from commonroad_raceline_planner.planner.ftm_planner.ftm_mc_planner import (
 # TODO: maybe make a parent class and inherit everything from there?
 class ShortestPathPlanner(MinimumCurvaturePlanner):
     """
-    FTM shortest path planner from Heilmeier et al.
+    FTM shortest path planner. It uses convex optimization (QP) to minimize the path length.
+
+    Paper: Heilmeier, A., Wischnewski, A., Hermansdorfer, L., Betz, J., Lienkamp, M., & Lohmann, B. (2020). Minimum curvature trajectory planning and control for an autonomous race car. Vehicle System Dynamics.
+
+    Based on: AVS and FTM (2024): TUMFTM/global_racetrajectory_optimization. Available online at: https://github.com/TUMFTM/global_racetrajectory_optimization,
+    AVS and FTM (2024): TUMFTM/trajectory_planning_helpers. Available online at: https://github.com/TUMFTM/trajectory_planning_helpers
     """
 
     def __init__(
