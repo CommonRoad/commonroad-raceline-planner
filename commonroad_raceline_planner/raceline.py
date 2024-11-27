@@ -15,7 +15,16 @@ from typing import Union, Tuple
 @dataclass
 class RaceLine:
     """
-    A cr raceline object containing information on the generated raceline
+    A cr raceline object containing information on the generated raceline.
+
+    :param points: (n,2) x,y points
+    :param length_per_point: (n,) arclength (accumulated) per point
+    :param velocity_long_per_point: (n,) velocity per point
+    :param acceleration_long_per_point: (n,) acceleration per point
+    :param curvature_per_point: (n,) curvature per point
+    :param num_points: number of points
+    :param closed: true, if racetrack is closed
+    :param sanity: true, if dimensions make sense
     """
 
     points: np.ndarray

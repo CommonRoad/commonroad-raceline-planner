@@ -21,7 +21,7 @@ from typing import Union, Optional, List
 @dataclass
 class RaceTrack:
     """
-    Race track with centerline, left bounds and right bounds
+    Race track with centerline, left bounds and right bounds.
     """
 
     x_m: np.ndarray

@@ -43,7 +43,13 @@ def generate_ftm_shortest_path_raceline_from_cr(
     show_plot: bool = False,
 ) -> RaceLine:
     """
-    Generate cr raceline with FTM shortest path algorithm
+    Generate cr raceline with FTM shortest path algorithm.
+
+    Paper: Heilmeier, A., Wischnewski, A., Hermansdorfer, L., Betz, J., Lienkamp, M., & Lohmann, B. (2020). Minimum curvature trajectory planning and control for an autonomous race car. Vehicle System Dynamics.
+
+    Based on: AVS and FTM (2024): TUMFTM/global_racetrajectory_optimization. Available online at: https://github.com/TUMFTM/global_racetrajectory_optimization,
+    AVS and FTM (2024): TUMFTM/trajectory_planning_helpers. Available online at: https://github.com/TUMFTM/trajectory_planning_helpers
+
     :param cr_scenario: cr scenario
     :param planning_problem: cr planning problem
     :param ini_path: path to .ini file
@@ -82,7 +88,13 @@ def generate_ftm_minimum_curvature_raceline_from_cr(
     show_plot: bool = False,
 ) -> RaceLine:
     """
-    Generate cr raceline with FTM minimum curvature algorithm algorithm
+    Generate cr raceline with FTM minimum curvature algorithm
+
+    Paper: Heilmeier, A., Wischnewski, A., Hermansdorfer, L., Betz, J., Lienkamp, M., & Lohmann, B. (2020). Minimum curvature trajectory planning and control for an autonomous race car. Vehicle System Dynamics.
+
+    Based on: AVS and FTM (2024): TUMFTM/global_racetrajectory_optimization. Available online at: https://github.com/TUMFTM/global_racetrajectory_optimization,
+    AVS and FTM (2024): TUMFTM/trajectory_planning_helpers. Available online at: https://github.com/TUMFTM/trajectory_planning_helpers
+
     :param cr_scenario: cr scenario
     :param planning_problem: cr planning problem
     :param ini_path: path to .ini file
@@ -123,6 +135,12 @@ def generate_ftm_raceline_from_cr_scenario(
 ) -> RaceLine:
     """
     Generate cr raceline with selectable FTM planner
+
+    Paper: Heilmeier, A., Wischnewski, A., Hermansdorfer, L., Betz, J., Lienkamp, M., & Lohmann, B. (2020). Minimum curvature trajectory planning and control for an autonomous race car. Vehicle System Dynamics.
+
+    Based on: AVS and FTM (2024): TUMFTM/global_racetrajectory_optimization. Available online at: https://github.com/TUMFTM/global_racetrajectory_optimization,
+    AVS and FTM (2024): TUMFTM/trajectory_planning_helpers. Available online at: https://github.com/TUMFTM/trajectory_planning_helpers
+
     :param cr_scenario: cr scenario
     :param planning_problem: cr planning problem
     :param opt_type: optimization type
