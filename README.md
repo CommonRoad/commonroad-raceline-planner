@@ -5,6 +5,11 @@ autonomous racing.
 Our work is based on code of the Indy Racing Team at TU Munich [1,2], namely the groups from Prof. Betz (AVS) and Prof. Lienkamp (FTM)
 and the following papers [3-6]. This toolbox is a collaboration between TUM CPS, AVS and FTM.
 
+### Contributing
+This toolbox is a collaborative effort from several chairs of the Technical University of Munich, namely
+the Professorship of Cyber-Physical Systems (CPS), the Professorship of Autonomous Vehicle Systems (AVS) 
+and the Professorship of Automotive Enginnering (FTM). We especially like to thank the entire Indy Autonomous Team
+of TUM for their code base.
 
 ## Featured Planners
 Currently, the toolbox features the following planners: 

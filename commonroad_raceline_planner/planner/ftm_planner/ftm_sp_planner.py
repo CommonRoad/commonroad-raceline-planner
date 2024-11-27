@@ -21,7 +21,6 @@ class ShortestPathPlanner(MinimumCurvaturePlanner):
 
     Based on: AVS and FTM (2024): TUMFTM/global_racetrajectory_optimization. Available online at: https://github.com/TUMFTM/global_racetrajectory_optimization,
     AVS and FTM (2024): TUMFTM/trajectory_planning_helpers. Available online at: https://github.com/TUMFTM/trajectory_planning_helpers
-
     """
 
     def __init__(
